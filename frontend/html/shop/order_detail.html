@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Order Details &bull; {{ order.order_no }} | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block full_page %}
+<!-- Storefront Header Navigation -->
+<header class="landing-nav storefront-header" id="landingNav">
+  <a href="{{ url_for('home') }}" class="brand-mark">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+      <path d="M6 3h12l4 6-10 12L2 9z"></path>
+      <path d="M11 3v18"></path>
+      <path d="M2 9h20"></path>
+    </svg>
+    <div>
+      <span class="brand-text" style="font-size:1.35rem; color:#FFFFFF;">VIJAYRAJ</span>
+      <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems & Jewellery</span>
+    </div>
+  </a>
+
+  <nav class="nav-links">
+    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+    <a href="{{ url_for('shop_catalog') }}" class="nav-link">Shop</a>
+    <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-gold btn-sm">My Orders</a>
+  </nav>
+</header>
+
+<!-- Breadcrumb Strip -->
+<div style="background:var(--bg-ivory); border-bottom:1px solid var(--border-warm); padding:1rem 2rem;">
+  <div style="max-width:1200px; margin:0 auto; font-size:0.85rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+    <div>
+      <a href="{{ url_for('customer_orders') }}" style="color:var(--text-primary); text-decoration:none;">&larr; Back to My Orders</a> &bull; 
+      <strong style="color:var(--primary-navy);">Order {{ order.order_no }}</strong>
+    </div>
+
+    <div style="display:flex; gap:0.5rem;">
+      {% if order.invoice_no %}
+        <a href="{{ url_for('customer_order_invoice', order_id=order.id) }}" class="btn btn-outline-gold btn-sm" target="_blank" title="View printable statutory GST Tax Invoice">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+          View Tax Invoice
+        </a>
+        <a href="{{ url_for('customer_order_invoice_pdf', order_id=order.id) }}" class="btn btn-gold btn-sm" target="_blank" download="Vijayraj_Invoice_{{ order.invoice_no }}.pdf">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:3px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download PDF
+        </a>
+      {% elif order.order_status == 'Pending' and order.payment_status in ('Pending', 'Failed') %}
+        <a href="{{ url_for('process_payment_view', order_id=order.id) }}" class="btn btn-gold btn-sm">
+          Retry Payment &rarr;
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Order Detail Container -->
+<div style="max-width: 1200px; margin: 2.5rem auto; padding: 0 1.5rem;">
+  <!-- Order Header Box -->
+  <div class="card" style="margin-bottom:2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; border-bottom:1px solid var(--border-light); padding-bottom:1rem; margin-bottom:1.5rem;">
+      <div>
+        <span class="overline" style="color:var(--accent-gold);">Order Overview</span>
+        <h1 style="font-family:var(--font-serif); font-size:1.85rem; font-weight:600; color:var(--primary-navy); margin-top:0.2rem;">
+          {{ order.order_no }}
+        </h1>
+        <div style="font-size:0.85rem; color:var(--text-muted);">
+          Placed on {{ order.created_at.strftime('%d %B %Y, %I:%M %p') }}
+        </div>
+      </div>
+
+      <div style="text-align:right;">
+        <div style="font-size:0.78rem; text-transform:uppercase; letter-spacing:1px; color:var(--text-muted);">Total Amount</div>
+        <div style="font-size:1.6rem; font-weight:700; color:var(--primary-navy);">{{ order.grand_total|inr }}</div>
+        <div style="margin-top:0.25rem;">
+          {% if order.payment_status == 'Paid' %}
+            <span class="badge badge-success">Payment: Paid</span>
+          {% elif order.payment_status == 'Failed' %}
+            <span class="badge badge-danger">Payment: Failed</span>
+          {% elif order.payment_status == 'Refunded' %}
+            <span class="badge badge-info">Payment: Refunded</span>
+          {% else %}
+            <span class="badge badge-warning">Payment: Pending</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Timeline -->
+    <div style="margin: 2rem 1rem;">
+      <div class="order-timeline">
+        {% set statuses = ['Pending', 'Confirmed', 'Shipped', 'Delivered'] %}
+        {% set is_cancelled = (order.order_status == 'Cancelled') %}
+
+        {% for s in statuses %}
+          {% set is_completed = false %}
+          {% set is_active = false %}
+          
+          {% if not is_cancelled %}
+            {% if order.order_status == 'Delivered' %}
+              {% set is_completed = true %}
+            {% elif order.order_status == 'Shipped' and s in ['Pending', 'Confirmed', 'Shipped'] %}
+              {% set is_completed = (s != 'Shipped') %}
+              {% set is_active = (s == 'Shipped') %}
+            {% elif order.order_status == 'Confirmed' and s in ['Pending', 'Confirmed'] %}
+              {% set is_completed = (s != 'Confirmed') %}
+              {% set is_active = (s == 'Confirmed') %}
+            {% elif order.order_status == 'Pending' and s == 'Pending' %}
+              {% set is_active = true %}
+            {% endif %}
+          {% endif %}
+
+          <div class="timeline-step {% if is_completed %}completed{% elif is_active %}active{% endif %}">
+            <div class="step-node">
+              {% if is_completed %}
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              {% elif is_active %}
+                <div style="width:10px; height:10px; border-radius:50%; background:#FFFFFF;"></div>
+              {% else %}
+                <div style="width:8px; height:8px; border-radius:50%; background:var(--border-warm);"></div>
+              {% endif %}
+            </div>
+            <div>
+              <div class="step-title">{{ s }}</div>
+              {% for h in history %}
+                {% if h.status == s %}
+                  <div class="step-date">{{ h.changed_at.strftime('%d %b, %H:%M') }}</div>
+                {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+
+        {% if is_cancelled %}
+        <div class="timeline-step cancelled">
+          <div class="step-node">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </div>
+          <div>
+            <div class="step-title" style="color:var(--status-danger);">Cancelled</div>
+            {% for h in history %}
+              {% if h.status == 'Cancelled' %}
+                <div class="step-date">{{ h.changed_at.strftime('%d %b, %H:%M') }}</div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Items and Shipping Grid -->
+  <div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; align-items:start;">
+    <!-- Items Table -->
+    <div class="card" style="padding:0; overflow:hidden;">
+      <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border-light); font-weight:700; color:var(--primary-navy);">
+        Ordered Pieces ({{ items|length }})
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Piece Specification</th>
+              <th class="text-right">Unit Price</th>
+              <th class="text-center">Qty</th>
+              <th class="text-right">Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in items %}
+            <tr>
+              <td>
+                <div style="font-weight:600; color:var(--primary-navy);">{{ it.product_name }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">Code: {{ it.product_code or '—' }} &bull; {{ it.jewellery_type or '' }}</div>
+              </td>
+              <td class="text-right" style="white-space:nowrap;">{{ it.unit_price|inr }}</td>
+              <td class="text-center">{{ it.quantity }}</td>
+              <td class="text-right" style="font-weight:700; white-space:nowrap;">{{ it.line_total|inr }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Price Breakdown inside Table Footer -->
+      <div style="background:var(--bg-ivory); padding:1.25rem 1.5rem; border-top:1px solid var(--border-light);">
+        <div class="summary-row">
+          <span>Items Subtotal:</span>
+          <strong>{{ order.subtotal|inr }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Statutory GST ({{ order.gst_percent }}%):</span>
+          <strong>{{ order.gst_amount|inr }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Insured Transit Fee:</span>
+          <strong>{% if order.delivery_charge == 0 %}<span style="color:var(--status-success);">FREE</span>{% else %}{{ order.delivery_charge|inr }}{% endif %}</strong>
+        </div>
+        <div class="summary-row total-row" style="margin-bottom:0;">
+          <span>Grand Settlement Total:</span>
+          <span style="color:var(--primary-navy);">{{ order.grand_total|inr }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Side: Shipping & Payment Summary -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+      <!-- Shipping Particulars -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+          <h3 class="card-title">Delivery Particulars</h3>
+        </div>
+        <div style="font-size:0.88rem; line-height:1.7; color:var(--text-primary);">
+          <div>Recipient: <strong>{{ order.ship_name }}</strong></div>
+          <div>Mobile: <strong>{{ order.ship_phone }}</strong></div>
+          <div style="margin-top:0.4rem; color:var(--text-muted);">
+            {{ order.ship_address }}<br>
+            {{ order.ship_city }}, {{ order.ship_state }} &ndash; {{ order.ship_pincode }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment Log Summary -->
+      <div class="card" style="margin-bottom:0;">
+        <div class="card-header">
+          <h3 class="card-title">Settlement Info</h3>
+        </div>
+        <div style="font-size:0.88rem; line-height:1.8;">
+          <div>Status: <strong>{{ order.payment_status }}</strong></div>
+          {% if payments %}
+            {% for p in payments %}
+              <div style="margin-top:0.4rem; padding-top:0.4rem; border-top:1px solid var(--border-light); font-size:0.82rem;">
+                <div>Method: <strong>{{ p.method }}</strong> &bull; Status: <strong class="{% if p.status == 'Success' %}text-success{% else %}text-danger{% endif %}">{{ p.status }}</strong></div>
+                {% if p.transaction_ref %}<div>Txn Ref: <span style="font-family:monospace;">{{ p.transaction_ref }}</span></div>{% endif %}
+                {% if p.failure_reason %}<div style="color:var(--status-danger);">Reason: {{ p.failure_reason }}</div>{% endif %}
+                <div class="text-muted">{{ p.created_at.strftime('%d %b %Y, %H:%M') }}</div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-muted" style="font-size:0.85rem;">No payment transactions recorded yet.</div>
+          {% endif %}
+
+          {% if order.order_status == 'Pending' and order.payment_status in ('Pending', 'Failed') %}
+            <div style="margin-top:1rem;">
+              <a href="{{ url_for('process_payment_view', order_id=order.id) }}" class="btn btn-gold btn-sm" style="width:100%; text-align:center; display:block;">
+                Retry Payment &rarr;
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

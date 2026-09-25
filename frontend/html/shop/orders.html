@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}My Orders | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block full_page %}
+<!-- Storefront Header Navigation -->
+<header class="landing-nav storefront-header" id="landingNav">
+  <a href="{{ url_for('home') }}" class="brand-mark">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+      <path d="M6 3h12l4 6-10 12L2 9z"></path>
+      <path d="M11 3v18"></path>
+      <path d="M2 9h20"></path>
+    </svg>
+    <div>
+      <span class="brand-text" style="font-size:1.35rem; color:#FFFFFF;">VIJAYRAJ</span>
+      <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems & Jewellery</span>
+    </div>
+  </a>
+
+  <nav class="nav-links">
+    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+    <a href="{{ url_for('shop_catalog') }}" class="nav-link">Shop</a>
+
+    <!-- Cart Icon with Count Badge -->
+    <a href="{{ url_for('view_cart') }}" class="nav-cart-btn" aria-label="Shopping Cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+      </svg>
+      {% if cart_count > 0 %}
+        <span class="nav-cart-badge">{{ cart_count }}</span>
+      {% endif %}
+    </a>
+
+    {% if current_customer %}
+      <a href="{{ url_for('customer_profile') }}" class="btn btn-gold btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem;">My Profile</a>
+      <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-gold btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem;">My Orders</a>
+      <a href="{{ url_for('customer_logout') }}" class="nav-link" style="font-size:0.82rem; color:#CBD5E1;">Sign Out</a>
+    {% endif %}
+  </nav>
+</header>
+
+<!-- Header Banner -->
+<div style="background:var(--primary-navy); padding: 2rem; color:#FFFFFF; border-bottom:1px solid rgba(201,162,75,0.3);">
+  <div style="max-width: 1200px; margin: 0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="overline" style="color:#C9A24B;">Client Boutique Portfolio</span>
+      <h1 style="font-family:var(--font-serif); font-size:2rem; font-weight:600; margin-top:0.25rem;">
+        My Purchase History &amp; Orders
+      </h1>
+      <div style="font-size:0.88rem; color:#CBD5E1;">
+        Logged in as: <strong>{{ current_customer.email }}</strong>
+      </div>
+    </div>
+    <div>
+      <a href="{{ url_for('shop_catalog') }}" class="btn btn-gold btn-sm">Explore More Collections &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<!-- Orders Table Container -->
+<div style="max-width: 1200px; margin: 2.5rem auto; padding: 0 1.5rem;">
+  {% if orders %}
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order Ref</th>
+            <th>Placed On</th>
+            <th>Item(s)</th>
+            <th class="text-right">Grand Total</th>
+            <th class="text-center">Payment</th>
+            <th class="text-center">Order Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for o in orders %}
+          <tr>
+            <td>
+              <a href="{{ url_for('customer_order_detail', order_id=o.id) }}" style="font-weight:700; color:var(--primary-navy); text-decoration:none;">
+                {{ o.order_no }}
+              </a>
+              {% if o.invoice_no %}
+                <div style="font-size:0.75rem; color:var(--accent-gold); font-weight:600;">Bill: {{ o.invoice_no }}</div>
+              {% endif %}
+            </td>
+
+            <td style="color:var(--text-muted); font-size:0.85rem; white-space:nowrap;">
+              {{ o.created_at.strftime('%d %b %Y, %I:%M %p') }}
+            </td>
+
+            <td style="font-size:0.88rem;">
+              <div style="max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                {{ o.items_summary }}
+              </div>
+              <div class="text-muted" style="font-size:0.75rem;">{{ o.total_items }} {% if o.total_items == 1 %}piece{% else %}pieces{% endif %}</div>
+            </td>
+
+            <td class="text-right" style="font-weight:700; color:var(--primary-navy); white-space:nowrap;">
+              {{ o.grand_total|inr }}
+            </td>
+
+            <td class="text-center">
+              {% if o.payment_status == 'Paid' %}
+                <span class="badge badge-success">Paid</span>
+              {% elif o.payment_status == 'Failed' %}
+                <span class="badge badge-danger">Failed</span>
+              {% elif o.payment_status == 'Refunded' %}
+                <span class="badge badge-info">Refunded</span>
+              {% else %}
+                <span class="badge badge-warning">Pending</span>
+              {% endif %}
+            </td>
+
+            <td class="text-center">
+              {% if o.order_status == 'Delivered' %}
+                <span class="badge badge-success">Delivered</span>
+              {% elif o.order_status == 'Shipped' %}
+                <span class="badge badge-info">Shipped</span>
+              {% elif o.order_status == 'Confirmed' %}
+                <span class="badge badge-gold">Confirmed</span>
+              {% elif o.order_status == 'Cancelled' %}
+                <span class="badge badge-danger">Cancelled</span>
+              {% else %}
+                <span class="badge badge-warning">Pending</span>
+              {% endif %}
+            </td>
+
+            <td class="text-right" style="white-space:nowrap;">
+              <div style="display:inline-flex; gap:0.4rem;">
+                <a href="{{ url_for('customer_order_detail', order_id=o.id) }}" class="btn btn-secondary btn-sm" title="View Order Details">
+                  View
+                </a>
+
+                {% if o.payment_status == 'Paid' and o.invoice_no %}
+                  <a href="{{ url_for('customer_order_invoice', order_id=o.id) }}" class="btn btn-outline-gold btn-sm" title="View Tax Invoice">
+                    Bill
+                  </a>
+                  <a href="{{ url_for('customer_order_invoice_pdf', order_id=o.id) }}" class="btn btn-gold btn-sm" title="Download Statutory PDF">
+                    PDF
+                  </a>
+                {% elif o.order_status == 'Pending' and o.payment_status in ('Pending', 'Failed') %}
+                  <a href="{{ url_for('process_payment_view', order_id=o.id) }}" class="btn btn-gold btn-sm">
+                    Pay Now
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% else %}
+  <!-- No Orders Found -->
+  <div class="card" style="text-align:center; padding:4rem 2rem;">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent-gold); margin-bottom:1rem;">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+      <polyline points="14 2 14 8 20 8"></polyline>
+    </svg>
+    <h2 style="font-family:var(--font-serif); font-size:1.6rem; color:var(--primary-navy); margin-bottom:0.5rem;">No Orders Yet</h2>
+    <p class="text-muted" style="max-width:400px; margin:0 auto 1.5rem auto;">
+      You have not placed any orders yet. Discover our latest crystal and diamond collections crafted with royal excellence.
+    </p>
+    <a href="{{ url_for('shop_catalog') }}" class="btn btn-gold btn-lg">Start Shopping</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="brand-title">VIJAYRAJ GEMS & JEWELLERY</div>
+      <p>Haute joaillerie specializing exclusively in certified diamonds and rare gemstones, mounted in precious 18K gold, platinum, and sterling silver settings.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Customer Care</h4>
+      <ul>
+        <li><a href="{{ url_for('shop_catalog') }}">All Pieces</a></li>
+        <li><a href="{{ url_for('home') }}#rates">Live Stone Spot Rates</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Flagship Boutique</h4>
+      <p style="font-size:0.85rem; line-height:1.6; color:rgba(255,255,255,0.85);">
+        <strong>VijayRaj Gems and jewellery</strong><br>
+        C1, N Main Rd, near Loftman Clothing Lane,<br>
+        Koregaon Park, Pune, Maharashtra 411001.<br>
+        <span style="color:#10B981; font-weight:600;">Mon - Sun: 9:00 AM – 10:30 PM</span><br>
+        Phone: <a href="tel:+919172387741" style="color:#C9A24B; text-decoration:none; font-weight:700;">+91 91723 87741</a><br>
+        <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" style="color:var(--accent-gold); text-decoration:underline; font-size:0.8rem;">
+          View on Google Maps &rarr;
+        </a>
+      </p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>&copy; {{ current_year }} VijayRaj Gems and jewellery. All Rights Reserved. &bull; 4.8 ★ Google Verified</div>
+  </div>
+</footer>
+{% endblock %}

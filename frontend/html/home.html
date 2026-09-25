@@ -1,0 +1,750 @@
+{% extends "base.html" %}
+
+{% block title %}Vijayraj Gems & Jewellery | Haute Joaillerie & Bridal Heritage{% endblock %}
+
+{% block full_page %}
+<!-- Public Landing Navigation Bar -->
+<header class="landing-nav" id="landingNav">
+  <!-- Left: Brand Logo & Compact Search -->
+  <div class="nav-left">
+    <a href="{{ url_for('home') }}" class="brand-mark">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+        <path d="M6 3h12l4 6-10 12L2 9z"></path>
+        <path d="M11 3v18"></path>
+        <path d="M2 9h20"></path>
+      </svg>
+      <div>
+        <span class="brand-text" style="font-size:1.35rem; color:#FFFFFF;">VIJAYRAJ</span>
+        <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems &amp; Jewellery</span>
+      </div>
+    </a>
+
+    <form action="{{ url_for('shop_catalog') }}" method="GET" class="nav-search-form">
+      <input type="text" name="q" placeholder="Search jewellery..." class="nav-search-input" aria-label="Search catalog">
+      <button type="submit" class="nav-search-btn" aria-label="Submit search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- Center: Curated Essential Links Only (Single-line, no unnecessary duplicates) -->
+  <nav class="nav-links" aria-label="Main Navigation">
+    <a href="{{ url_for('shop_catalog') }}" class="nav-link">Shop</a>
+    <a href="#collections" class="nav-link">Collections</a>
+    <a href="#rates" class="nav-link">Live Rates</a>
+    <a href="#boutique" class="nav-link">Boutique</a>
+  </nav>
+
+  <!-- Right: Actions & User Accounts -->
+  <div class="nav-actions">
+    <!-- Cart Icon with Item Count -->
+    <a href="{{ url_for('view_cart') }}" class="nav-cart-btn" aria-label="Shopping Cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+      </svg>
+      {% if cart_count > 0 %}
+        <span class="nav-cart-badge">{{ cart_count }}</span>
+      {% endif %}
+    </a>
+
+    <!-- Customer Login / Orders Link -->
+    {% if current_customer %}
+      <a href="{{ url_for('customer_profile') }}" class="nav-link" style="color:var(--accent-gold); font-size:0.82rem; white-space:nowrap;" title="View & Edit Saved Profile">{{ current_customer.name }}</a>
+      <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-gold btn-sm" style="padding:0.38rem 0.85rem; font-size:0.8rem; white-space:nowrap;">My Orders</a>
+    {% else %}
+      <a href="{{ url_for('customer_login') }}" class="nav-link customer-btn">Sign In</a>
+    {% endif %}
+
+    {% if current_user %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-gold btn-sm" style="padding:0.38rem 0.85rem; font-size:0.78rem; white-space:nowrap;">Portal</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="btn btn-outline-gold btn-sm staff-nav-btn">Staff Login</a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- Hero Slider Section -->
+<section class="hero-slider-section">
+  <div class="slider-container">
+    <!-- Slide 1 -->
+    <div class="slide active">
+      <img src="{{ url_for('static', filename='images/hero-1.jpg') }}" alt="Royal Diamond & Stone Bridal Heritage" class="slide-img" fetchpriority="high">
+      <div class="slide-overlay">
+        <div class="slide-content">
+          <div class="slide-tagline">Royal Heritage Collections</div>
+          <h1 class="slide-title">Crafting Timeless Heirlooms</h1>
+          <p class="slide-desc">Handcrafted diamond solitaires, sparkling gemstones, and polki jewellery sculpted by master artisans for memorable celebrations.</p>
+          <div class="slide-actions">
+            <a href="#collections" class="btn btn-gold btn-lg">Explore Collections</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); color:#FFFFFF;">Staff Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide">
+      <img src="{{ url_for('static', filename='images/hero-2.jpg') }}" alt="Brilliant Diamond Solitaires" class="slide-img" loading="lazy">
+      <div class="slide-overlay">
+        <div class="slide-content">
+          <div class="slide-tagline">Solitaire Diamonds</div>
+          <h2 class="slide-title">Brilliance in Every Facet</h2>
+          <p class="slide-desc">IGI and GIA certified natural diamonds with unparalleled fire, precision cuts, and everlasting lustre.</p>
+          <div class="slide-actions">
+            <a href="#featured" class="btn btn-gold btn-lg">View Solitaires</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); color:#FFFFFF;">Staff Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide">
+      <img src="{{ url_for('static', filename='images/hero-3.jpg') }}" alt="Precious Royal Gemstones" class="slide-img" loading="lazy">
+      <div class="slide-overlay">
+        <div class="slide-content">
+          <div class="slide-tagline">Haute Joaillerie</div>
+          <h2 class="slide-title">Emeralds, Rubies & Sapphires</h2>
+          <p class="slide-desc">A curated legacy of natural Zambian emeralds and rare Burmese gemstones mounted in 18K gold, rose gold, and platinum settings.</p>
+          <div class="slide-actions">
+            <a href="#collections" class="btn btn-gold btn-lg">Discover Gemstones</a>
+            <a href="{{ url_for('login') }}" class="btn btn-secondary btn-lg" style="background:rgba(255,255,255,0.15); border-color:rgba(255,255,255,0.3); color:#FFFFFF;">Staff Login</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slider Controls -->
+  <button type="button" class="slider-arrow slider-prev" aria-label="Previous slide">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  <button type="button" class="slider-arrow slider-next" aria-label="Next slide">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+
+  <div class="slider-dots">
+    <span class="dot active" data-index="0"></span>
+    <span class="dot" data-index="1"></span>
+    <span class="dot" data-index="2"></span>
+  </div>
+</section>
+
+<!-- Google Maps Trust & Verified Rating Bar -->
+<div class="google-trust-bar">
+  <div class="google-trust-grid">
+    <!-- Card 1: Google Rating -->
+    <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" class="google-trust-card">
+      <div class="google-trust-icon">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      </div>
+      <div class="google-trust-info">
+        <div class="google-trust-title">
+          <span class="google-rating-pill">4.8 ★</span>
+          <span>Google Reviews</span>
+        </div>
+        <div class="google-trust-sub">33 Verified Reviews &bull; Pune</div>
+      </div>
+    </a>
+
+    <!-- Card 2: Boutique Location -->
+    <a href="#boutique" class="google-trust-card">
+      <div class="google-trust-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+      </div>
+      <div class="google-trust-info">
+        <div class="google-trust-title">Flagship Boutique</div>
+        <div class="google-trust-sub">Koregaon Park, Pune 411001</div>
+      </div>
+    </a>
+
+    <!-- Card 3: Opening Hours -->
+    <div class="google-trust-card">
+      <div class="google-trust-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="google-trust-info">
+        <div class="google-trust-title">
+          <span class="boutique-status-open" style="margin:0; font-size:0.82rem;">Open Daily</span>
+          <span>9:00 AM – 10:30 PM</span>
+        </div>
+        <div class="google-trust-sub">Mon – Sun &bull; Walk-ins &amp; Viewings</div>
+      </div>
+    </div>
+
+    <!-- Card 4: Direct Phone -->
+    <a href="tel:+919172387741" class="google-trust-card">
+      <div class="google-trust-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      </div>
+      <div class="google-trust-info">
+        <div class="google-trust-title">+91 91723 87741</div>
+        <div class="google-trust-sub">Direct Boutique Concierge</div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<!-- Broadcast TV News Channel Live Stone Spot Rates Ticker (5 Items Visible) -->
+<div class="news-ticker-bar" id="rates" role="region" aria-label="Live Commodity Spot Ticker">
+  <!-- Pinned TV News Label on the Left -->
+  <div class="news-ticker-tag">
+    <span class="live-dot-pulse"></span>
+    <span class="ticker-tag-title">SPOT RATES</span>
+    <span class="ticker-tag-badge">LIVE</span>
+  </div>
+
+  <!-- Moving Marquee Track (Smooth Continuous Horizontal Scroll - Exactly 5 Items Visible at a time) -->
+  <div class="news-ticker-viewport">
+    <div class="news-ticker-track" id="newsTickerTrack">
+      <!-- Set 1 (10 Items) -->
+      {% for rate in metal_rates %}
+      <div class="news-ticker-item" data-metal="{{ rate.metal }}">
+        <div class="ticker-item-content">
+          <div class="ticker-item-top">
+            <span class="ticker-metal-name" title="{{ rate.metal }}">{{ rate.metal }}</span>
+          </div>
+          <div class="ticker-item-bottom">
+            <span class="ticker-metal-val rate-val" data-metal="{{ rate.metal }}">{{ rate.rate_per_gram|inr }} /{{ rate.unit or 'ct' }}</span>
+            <span class="rate-change-pill up" data-metal="{{ rate.metal }}">▲ +0.00%</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Set 2 (Identical Duplicate for Seamless 100% Infinite News Channel Marquee Loop) -->
+      {% for rate in metal_rates %}
+      <div class="news-ticker-item clone" data-metal="{{ rate.metal }}" aria-hidden="true">
+        <div class="ticker-item-content">
+          <div class="ticker-item-top">
+            <span class="ticker-metal-name" title="{{ rate.metal }}">{{ rate.metal }}</span>
+          </div>
+          <div class="ticker-item-bottom">
+            <span class="ticker-metal-val rate-val" data-metal="{{ rate.metal }}">{{ rate.rate_per_gram|inr }} /{{ rate.unit or 'ct' }}</span>
+            <span class="rate-change-pill up" data-metal="{{ rate.metal }}">▲ +0.00%</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="liveMarketRatesJson">{{ market_rates_json|safe }}</script>
+
+<!-- Collections Grid Section -->
+<section class="section-padding" id="collections">
+  <div class="section-head">
+    <span class="overline">Curated Horizons</span>
+    <h2 class="section-title">The Vijayraj Signature Collections</h2>
+    <p class="section-sub">Explore our quintessential offerings crafted in precious metals and ethically sourced stones.</p>
+    <div class="gold-divider"></div>
+  </div>
+
+  <div class="collections-grid">
+    {% for cat in categories %}
+    <a href="{{ url_for('shop_catalog', category=cat.slug) }}" class="collection-tile">
+      <img src="{{ url_for('static', filename='images/' + (cat.image_path or 'cat-gold.jpg')) }}" alt="{{ cat.name }} Collection" loading="lazy">
+      <div class="tile-caption">
+        <div class="tile-name">{{ cat.name }}</div>
+        <div class="tile-explore">{{ cat.description or 'Explore Collection' }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Trust / Why Choose Us Strip -->
+<section class="trust-strip">
+  <div class="trust-grid">
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+      </div>
+      <h3 class="trust-title">100% BIS Hallmarked</h3>
+      <p class="trust-desc">All gemstone precious mountings are certified with genuine BIS hallmarking and certified conflict-free stones.</p>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="6 2 18 2 22 8 12 22 2 8 6 2"></polygon></svg>
+      </div>
+      <h3 class="trust-title">IGI & GIA Diamonds</h3>
+      <p class="trust-desc">Conflict-free natural diamonds individually tested and certified for color, cut, clarity, and carat.</p>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+      </div>
+      <h3 class="trust-title">Lifetime Exchange</h3>
+      <p class="trust-desc">Transparent lifetime buyback and exchange guarantee at prevailing market gemstone and diamond benchmark rates.</p>
+    </div>
+
+    <div class="trust-item">
+      <div class="trust-icon-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
+      </div>
+      <h3 class="trust-title">Bespoke Couture</h3>
+      <p class="trust-desc">Collaborate with our in-house master jewel-smiths to customize one-of-a-kind bridal heirlooms.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Pieces Showcase -->
+<section class="section-padding" id="featured">
+  <div class="section-head">
+    <span class="overline">Exquisite Masterpieces</span>
+    <h2 class="section-title">Featured Pieces in Our Vault</h2>
+    <p class="section-sub">Select high-jewellery masterpieces available for purchase and private boutique viewing.</p>
+    <div class="gold-divider"></div>
+  </div>
+
+  <div class="products-grid">
+    {% for p in featured_products %}
+    <div class="product-card">
+      <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+        <div class="product-media">
+          <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy">
+          <span class="category-tag">{{ p.category_name or p.category }}</span>
+          {% if p.stock_qty <= p.reorder_level %}
+            <span class="stock-tag low-stock">Low Stock</span>
+          {% else %}
+            <span class="stock-tag in-stock">Available</span>
+          {% endif %}
+        </div>
+      </a>
+      <div class="product-body">
+        <div class="product-code-meta">{{ p.product_code }} {% if p.jewellery_type %}&bull; {{ p.jewellery_type }}{% endif %}</div>
+        <h3 class="product-title">
+          <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+            {{ p.name }}
+          </a>
+        </h3>
+        <div class="product-specs">
+          <span>Stone: <strong>{{ p.stone_type or 'Precious Gem' }}</strong></span>
+          <span>Mount: <strong>{{ p.purity or '18K Setting' }}</strong></span>
+        </div>
+        <div class="product-price-bar">
+          <div class="product-price-row">
+            <span class="product-price-label">Price (incl. Making)</span>
+            <span class="price-val">{{ p.price|inr }}</span>
+          </div>
+          <div class="product-actions-group">
+            <a href="{{ url_for('product_detail_view', product_id=p.id) }}" class="btn btn-outline-gold btn-sm btn-view">View</a>
+            {% if current_customer or current_user %}
+              <form action="{{ url_for('cart_add') }}" method="POST" class="product-cart-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="product_id" value="{{ p.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-gold btn-sm">Add to Cart</button>
+              </form>
+            {% else %}
+              <a href="{{ url_for('customer_login') }}" class="btn btn-gold btn-sm btn-cart-link">Add to Cart</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- New Arrivals Showcase -->
+<section class="section-padding" id="new-arrivals" style="background:var(--bg-ivory); border-top:1px solid var(--border-warm); border-bottom:1px solid var(--border-warm);">
+  <div class="section-head">
+    <span class="overline">Latest Creations</span>
+    <h2 class="section-title">New Arrivals</h2>
+    <p class="section-sub">Freshly sculpted fine jewellery straight from our master artisans' workshop.</p>
+    <div class="gold-divider"></div>
+  </div>
+
+  <div class="products-grid">
+    {% for p in new_arrivals %}
+    <div class="product-card">
+      <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+        <div class="product-media">
+          <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy">
+          <span class="category-tag">{{ p.category_name or p.category }}</span>
+          {% if p.stock_qty <= p.reorder_level %}
+            <span class="stock-tag low-stock">Low Stock</span>
+          {% else %}
+            <span class="stock-tag in-stock">Available</span>
+          {% endif %}
+        </div>
+      </a>
+      <div class="product-body">
+        <div class="product-code-meta">{{ p.product_code }} {% if p.jewellery_type %}&bull; {{ p.jewellery_type }}{% endif %}</div>
+        <h3 class="product-title">
+          <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+            {{ p.name }}
+          </a>
+        </h3>
+        <div class="product-specs">
+          <span>Stone: <strong>{{ p.stone_type or 'Precious Gem' }}</strong></span>
+          <span>Mount: <strong>{{ p.purity or '18K Setting' }}</strong></span>
+        </div>
+        <div class="product-price-bar">
+          <div class="product-price-row">
+            <span class="product-price-label">Price (incl. Making)</span>
+            <span class="price-val">{{ p.price|inr }}</span>
+          </div>
+          <div class="product-actions-group">
+            <a href="{{ url_for('product_detail_view', product_id=p.id) }}" class="btn btn-outline-gold btn-sm btn-view">View</a>
+            {% if current_customer or current_user %}
+              <form action="{{ url_for('cart_add') }}" method="POST" class="product-cart-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="product_id" value="{{ p.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-gold btn-sm">Add to Cart</button>
+              </form>
+            {% else %}
+              <a href="{{ url_for('customer_login') }}" class="btn btn-gold btn-sm btn-cart-link">Add to Cart</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Popular Products Showcase -->
+<section class="section-padding" id="popular">
+  <div class="section-head">
+    <span class="overline">Client Favorites</span>
+    <h2 class="section-title">Popular Pieces</h2>
+    <p class="section-sub">Most beloved and celebrated certified diamond and precious gemstone creations chosen by our patrons.</p>
+    <div class="gold-divider"></div>
+  </div>
+
+  <div class="products-grid">
+    {% for p in popular_products %}
+    <div class="product-card">
+      <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+        <div class="product-media">
+          <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy">
+          <span class="category-tag">{{ p.category_name or p.category }}</span>
+          {% if p.stock_qty <= p.reorder_level %}
+            <span class="stock-tag low-stock">Low Stock</span>
+          {% else %}
+            <span class="stock-tag in-stock">Available</span>
+          {% endif %}
+        </div>
+      </a>
+      <div class="product-body">
+        <div class="product-code-meta">{{ p.product_code }} {% if p.jewellery_type %}&bull; {{ p.jewellery_type }}{% endif %}</div>
+        <h3 class="product-title">
+          <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+            {{ p.name }}
+          </a>
+        </h3>
+        <div class="product-specs">
+          <span>Stone: <strong>{{ p.stone_type or 'Precious Gem' }}</strong></span>
+          <span>Mount: <strong>{{ p.purity or '18K Setting' }}</strong></span>
+        </div>
+        <div class="product-price-bar">
+          <div class="product-price-row">
+            <span class="product-price-label">Price (incl. Making)</span>
+            <span class="price-val">{{ p.price|inr }}</span>
+          </div>
+          <div class="product-actions-group">
+            <a href="{{ url_for('product_detail_view', product_id=p.id) }}" class="btn btn-outline-gold btn-sm btn-view">View</a>
+            {% if current_customer or current_user %}
+              <form action="{{ url_for('cart_add') }}" method="POST" class="product-cart-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <input type="hidden" name="product_id" value="{{ p.id }}">
+                <input type="hidden" name="quantity" value="1">
+                <button type="submit" class="btn btn-gold btn-sm">Add to Cart</button>
+              </form>
+            {% else %}
+              <a href="{{ url_for('customer_login') }}" class="btn btn-gold btn-sm btn-cart-link">Add to Cart</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Heritage & Legacy Section -->
+<section class="legacy-section" id="legacy">
+  <div class="legacy-image-wrap">
+    <img src="{{ url_for('static', filename='images/about.jpg') }}" alt="Vijayraj Jewellery Atelier" loading="lazy">
+  </div>
+  <div class="legacy-content">
+    <span class="overline">Three Decades of Excellence</span>
+    <h2>A Heritage of Trust, Purity & Artistry</h2>
+    <p>Established with an unyielding reverence for Indian craftsmanship, Vijayraj Gems and Jewellery has stood as a beacon of uncompromising luxury and trust.</p>
+    <p>Every piece in our collection begins with carefully selected rough stones and 100% certified metals, sculpted by generational craftsmen whose families have shaped royal jewellery for centuries.</p>
+    <p>Whether commemorating sacred wedding vows or celebrating personal milestones, our bespoke creations are crafted to be treasured for generations to come.</p>
+    <div style="margin-top:1.5rem;">
+      <a href="#boutique" class="btn btn-primary btn-lg">Visit Our Koregaon Park Atelier</a>
+    </div>
+  </div>
+</section>
+
+<!-- Google Customer Reviews Section -->
+<section class="reviews-section" id="reviews">
+  <div class="reviews-container">
+    <div class="reviews-header">
+      <span class="overline" style="color:var(--accent-gold);">Client Testimonials &bull; Google Verified</span>
+      <h2>Praised by Connoisseurs</h2>
+      <p style="color:rgba(255,255,255,0.7); font-size:0.95rem;">Read what our patrons share about our natural gemstones, bespoke jewellery crafting, and transparent certification.</p>
+      
+      <div class="reviews-google-summary">
+        <span class="google-rating-pill" style="font-size:1rem; padding:0.3rem 0.8rem;">4.8 ★★★★★</span>
+        <span style="color:#FFFFFF; font-weight:600; font-size:0.95rem;">Rating based on 33 Verified Google Reviews</span>
+        <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" class="btn btn-outline-gold btn-sm" style="margin-left:0.5rem; text-decoration:none;">
+          View on Google Maps &rarr;
+        </a>
+      </div>
+    </div>
+
+    <div class="reviews-grid">
+      <!-- Review 1 -->
+      <div class="review-card">
+        <div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-quote">"Beautiful and authentic collection of gemstones and jewellery, with options for custom designs. Very happy with my purchase and the certified authenticity!"</p>
+        </div>
+        <div class="review-author">
+          <div class="review-avatar">AD</div>
+          <div>
+            <div class="review-author-name">Ananya Deshmukh</div>
+            <div class="review-source">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#34A853"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Verified Google Review
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review 2 -->
+      <div class="review-card">
+        <div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-quote">"Helpful staff in explaining gemstone astrology, certified grading, and understanding customer needs. The quality of natural Citrine and Ruby here is exceptional."</p>
+        </div>
+        <div class="review-author">
+          <div class="review-avatar">RK</div>
+          <div>
+            <div class="review-author-name">Rajesh Kulkarni</div>
+            <div class="review-source">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#34A853"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Verified Google Review
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Review 3 -->
+      <div class="review-card">
+        <div>
+          <div class="review-stars">★★★★★</div>
+          <p class="review-quote">"Got a custom precious stone ring crafted in 18K gold setting. Transparent pricing, genuine certification, and outstanding customer service from start to finish."</p>
+        </div>
+        <div class="review-author">
+          <div class="review-avatar">NS</div>
+          <div>
+            <div class="review-author-name">Neha Sharma</div>
+            <div class="review-source">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="#34A853"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+              Verified Google Review
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Flagship Boutique & Google Maps Location Section -->
+<section class="boutique-section" id="boutique">
+  <div class="boutique-container">
+    <div class="section-head" style="text-align:left; margin-bottom:1.75rem;">
+      <span class="overline" style="color:#C9A24B; font-weight:700; letter-spacing:2px;">Our Flagship Presence</span>
+      <h2 class="section-title" style="color:#FFFFFF; font-family:'Playfair Display', serif; font-size:2.5rem; margin-top:0.25rem; margin-bottom:0.6rem;">Visit Our Atelier in Koregaon Park</h2>
+      <p class="section-sub" style="color:rgba(255,255,255,0.85); font-size:1.05rem; margin:0; line-height:1.6;">Experience certified solitaire diamonds, natural astrological gemstones, and bespoke custom jewellery in person.</p>
+    </div>
+
+    <div class="boutique-grid">
+      <!-- Store Details & Concierge Card -->
+      <div class="boutique-card">
+        <div>
+          <div class="boutique-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            Flagship Store &bull; Pune
+          </div>
+          
+          <h3 class="boutique-title">VijayRaj Gems and jewellery</h3>
+          <div class="boutique-subtitle">विजयराज जेम्स एंड ज्वेलरी &bull; Certified Gemstone &amp; Solitaire Specialist</div>
+
+          <div class="boutique-detail-list">
+            <!-- Address -->
+            <div class="boutique-detail-item">
+              <div class="boutique-detail-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div class="boutique-detail-text">
+                <h4>Address &amp; Landmark</h4>
+                <p>
+                  C1, N Main Rd, near Loftman Clothing Lane, Damco Society, Ragvilas Society, Koregaon Park, Pune, Maharashtra 411001
+                </p>
+                <div style="font-size:0.78rem; color:var(--accent-gold); margin-top:3px;">
+                  Plus Code: <strong>GVQV+W3 Pune, Maharashtra</strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hours -->
+            <div class="boutique-detail-item">
+              <div class="boutique-detail-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="boutique-detail-text">
+                <h4>Operating Hours</h4>
+                <div class="boutique-status-open">Open Today &bull; 9:00 AM – 10:30 PM</div>
+                <p>Monday to Sunday (Open all 7 days a week for walk-ins &amp; scheduled viewings)</p>
+              </div>
+            </div>
+
+            <!-- Phone & Contact -->
+            <div class="boutique-detail-item">
+              <div class="boutique-detail-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+              </div>
+              <div class="boutique-detail-text">
+                <h4>Direct Phone &amp; Enquiries</h4>
+                <p>
+                  <a href="tel:+919172387741" style="color:#FFFFFF; text-decoration:none; font-weight:700; font-size:1rem;">
+                    +91 91723 87741
+                  </a>
+                  <span style="display:block; font-size:0.8rem; color:rgba(255,255,255,0.6);">Available for WhatsApp &amp; In-Store Assistance</span>
+                </p>
+              </div>
+            </div>
+
+            <!-- In-Store Services & Payments -->
+            <div class="boutique-detail-item">
+              <div class="boutique-detail-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+              </div>
+              <div class="boutique-detail-text">
+                <h4>Services &amp; Payment Options</h4>
+                <div class="boutique-amenities-tags">
+                  <span class="amenity-pill">Custom Gemstone Ring Crafting</span>
+                  <span class="amenity-pill">Astrology Consultation</span>
+                  <span class="amenity-pill">Express Insured Delivery</span>
+                  <span class="amenity-pill">UPI / Google Pay</span>
+                  <span class="amenity-pill">Credit &amp; Debit Cards</span>
+                  <span class="amenity-pill">NFC Contactless</span>
+                  <span class="amenity-pill">Cash</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action CTAs -->
+        <div class="boutique-actions">
+          <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" class="btn btn-gold btn-md" style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+            Get Directions on Google Maps
+          </a>
+          <a href="tel:+919172387741" class="btn btn-outline-gold btn-md" style="display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Call +91 91723 87741
+          </a>
+        </div>
+      </div>
+
+      <!-- Interactive Google Maps Card -->
+      <div class="boutique-map-card">
+        <div class="map-embed-wrapper">
+          <iframe 
+            title="VijayRaj Gems and jewellery Location Map"
+            src="https://maps.google.com/maps?q=18.5397789,73.8926484&hl=en&z=16&output=embed"
+            loading="lazy" 
+            allowfullscreen 
+            referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+        <div class="map-card-footer">
+          <div class="map-card-footer-info">
+            <strong style="color:#FFFFFF;">VijayRaj Gems &amp; jewellery</strong> &bull; Koregaon Park, Pune
+          </div>
+          <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" style="color:var(--accent-gold); font-size:0.85rem; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
+            Open in Google Maps App &nearr;
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="site-footer" id="contact">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="brand-title">VIJAYRAJ GEMS & JEWELLERY</div>
+      <p>Haute Joaillerie atelier specializing exclusively in certified solitaire diamonds, precious natural gemstones, and bespoke stone jewellery collections.</p>
+      <div style="margin-top:1rem; display:flex; align-items:center; gap:0.5rem;">
+        <span class="google-rating-pill" style="font-size:0.85rem;">4.8 ★★★★★</span>
+        <span style="font-size:0.82rem; color:rgba(255,255,255,0.7);">33 Google Reviews</span>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h4>Collections</h4>
+      <ul>
+        <li><a href="#collections">Certified Solitaires</a></li>
+        <li><a href="#collections">Precious Gemstone Suites</a></li>
+        <li><a href="#collections">Diamond Necklaces & Chokers</a></li>
+        <li><a href="#collections">Diamond Rings & Bands</a></li>
+        <li><a href="#collections">Gemstone Bracelets & Drops</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Management</h4>
+      <ul>
+        <li><a href="{{ url_for('login') }}">Staff Login Portal</a></li>
+        <li><a href="{{ url_for('dashboard') }}">Executive Dashboard</a></li>
+        <li><a href="{{ url_for('manager_orders') }}">Order Management</a></li>
+        <li><a href="{{ url_for('products_list') }}">Product Inventory</a></li>
+      </ul>
+    </div>
+
+    <div class="footer-col">
+      <h4>Flagship Boutique</h4>
+      <p style="font-size:0.85rem; line-height:1.6; color:rgba(255,255,255,0.85); margin-bottom:0.75rem;">
+        <strong>VijayRaj Gems and jewellery</strong><br>
+        C1, N Main Rd, near Loftman Clothing Lane,<br>
+        Damco Society, Ragvilas Society,<br>
+        Koregaon Park, Pune, Maharashtra 411001.<br>
+        <span style="color:#10B981; font-weight:600;">Mon - Sun: 9:00 AM to 10:30 PM</span>
+      </p>
+      <p style="font-size:0.85rem; color:#C9A24B; line-height:1.6;">
+        Phone: <a href="tel:+919172387741" style="color:#C9A24B; text-decoration:none; font-weight:700;">+91 91723 87741</a><br>
+        Concierge: concierge@vijayrajjewels.in<br>
+        <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" style="color:var(--accent-gold); text-decoration:underline; font-size:0.8rem;">
+          View on Google Maps &rarr;
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div>&copy; {{ current_year }} VijayRaj Gems and jewellery. All Rights Reserved.</div>
+    <div>BIS Hallmarked &bull; IGI / GIA Certified &bull; Insured Delivery Across India</div>
+  </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/slider.js') }}"></script>
+{% endblock %}

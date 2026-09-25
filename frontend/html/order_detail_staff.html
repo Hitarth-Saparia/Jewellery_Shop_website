@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Order {{ order.order_no }} | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}Order Management &bull; {{ order.order_no }}{% endblock %}
+
+{% block topbar_actions %}
+<div style="display:flex; gap:0.5rem;">
+  {% if order.payment_status == 'Paid' and order.invoice_no %}
+    <a href="{{ url_for('manager_order_invoice_view', id=order.id) }}" class="btn btn-outline-gold btn-sm" target="_blank">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+      View Tax Invoice
+    </a>
+    <a href="{{ url_for('manager_order_invoice_pdf', id=order.id) }}" class="btn btn-gold btn-sm">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Download Tax Invoice (PDF)
+    </a>
+  {% endif %}
+  <a href="{{ url_for('manager_orders') }}" class="btn btn-secondary btn-sm">&larr; Back to Orders</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Order Status and Action Header -->
+<div class="card" style="margin-bottom:2rem;">
+  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1.5rem;">
+    <div>
+      <span class="overline" style="color:var(--accent-gold);">Online Consignment Ref</span>
+      <h2 style="font-family:var(--font-serif); font-size:1.85rem; font-weight:600; color:var(--primary-navy); margin:0.2rem 0;">
+        {{ order.order_no }}
+      </h2>
+      <div style="font-size:0.85rem; color:var(--text-muted);">
+        Created: {{ order.created_at.strftime('%d %B %Y, %I:%M %p') }}
+        {% if order.invoice_no %} &bull; Invoice: <strong style="color:var(--accent-gold);">{{ order.invoice_no }}</strong>{% endif %}
+      </div>
+    </div>
+
+    <!-- Status Pills and Status Update Form -->
+    <div style="display:flex; align-items:center; gap:1.5rem; flex-wrap:wrap;">
+      <div style="text-align:right;">
+        <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted);">Current State</div>
+        <div style="margin-top:2px;">
+          {% if order.order_status == 'Delivered' %}
+            <span class="badge badge-success" style="font-size:0.9rem; padding:4px 10px;">Delivered</span>
+          {% elif order.order_status == 'Shipped' %}
+            <span class="badge badge-info" style="font-size:0.9rem; padding:4px 10px;">Shipped</span>
+          {% elif order.order_status == 'Confirmed' %}
+            <span class="badge badge-gold" style="font-size:0.9rem; padding:4px 10px;">Confirmed</span>
+          {% elif order.order_status == 'Cancelled' %}
+            <span class="badge badge-danger" style="font-size:0.9rem; padding:4px 10px;">Cancelled</span>
+          {% else %}
+            <span class="badge badge-warning" style="font-size:0.9rem; padding:4px 10px;">Pending</span>
+          {% endif %}
+
+          {% if order.payment_status == 'Paid' %}
+            <span class="badge badge-success" style="font-size:0.9rem; padding:4px 10px;">Paid</span>
+          {% elif order.payment_status == 'Failed' %}
+            <span class="badge badge-danger" style="font-size:0.9rem; padding:4px 10px;">Failed</span>
+          {% elif order.payment_status == 'Refunded' %}
+            <span class="badge badge-info" style="font-size:0.9rem; padding:4px 10px;">Refunded</span>
+          {% else %}
+            <span class="badge badge-warning" style="font-size:0.9rem; padding:4px 10px;">Payment Pending</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- State Transition Form -->
+      {% if allowed_transitions %}
+      <div style="border-left:1px solid var(--border-warm); padding-left:1.5rem;">
+        <form action="{{ url_for('manager_order_status_update', id=order.id) }}" method="POST" style="display:flex; gap:0.5rem; align-items:center;" onsubmit="return confirmTransition(this);">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <select name="new_status" id="newStatusSelect" class="form-control" style="width:auto; padding:0.45rem 0.8rem; font-size:0.88rem;" required>
+            <option value="">-- Update Status --</option>
+            {% for t in allowed_transitions %}
+              <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-gold btn-sm">
+            Execute Transition
+          </button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 2fr 1fr; gap:2rem; align-items:start;">
+  <!-- Left: Items & History -->
+  <div style="display:flex; flex-direction:column; gap:2rem;">
+    <!-- Items Table -->
+    <div class="card" style="padding:0; overflow:hidden; margin-bottom:0;">
+      <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border-light); font-weight:700; color:var(--primary-navy);">
+        Ordered Pieces ({{ items|length }})
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Piece Specification</th>
+              <th class="text-right">Unit Price</th>
+              <th class="text-center">Qty</th>
+              <th class="text-right">Line Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for it in items %}
+            <tr>
+              <td>
+                <div style="font-weight:600; color:var(--primary-navy);">{{ it.product_name }}</div>
+                <div class="text-muted" style="font-size:0.75rem;">Product ID: #{{ it.product_id }}</div>
+              </td>
+              <td class="text-right" style="white-space:nowrap;">{{ it.unit_price|inr }}</td>
+              <td class="text-center">{{ it.quantity }}</td>
+              <td class="text-right" style="font-weight:700; white-space:nowrap;">{{ it.line_total|inr }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Financial Totals Box -->
+      <div style="background:var(--bg-ivory); padding:1.25rem 1.5rem; border-top:1px solid var(--border-light);">
+        <div class="summary-row">
+          <span>Subtotal:</span>
+          <strong>{{ order.subtotal|inr }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Statutory GST ({{ order.gst_percent }}%):</span>
+          <strong>{{ order.gst_amount|inr }}</strong>
+        </div>
+        <div class="summary-row">
+          <span>Insured Transit Fee:</span>
+          <strong>{% if order.delivery_charge == 0 %}FREE{% else %}{{ order.delivery_charge|inr }}{% endif %}</strong>
+        </div>
+        <div class="summary-row total-row" style="margin-bottom:0;">
+          <span>Grand Settlement Total:</span>
+          <span style="color:var(--primary-navy);">{{ order.grand_total|inr }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status History Audit Log -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <h3 class="card-title">Order Lifecycle Audit Trail</h3>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:0.75rem;">
+        {% for h in history %}
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.6rem 0.8rem; background:var(--bg-ivory); border-radius:var(--radius-sm); border:1px solid var(--border-light); font-size:0.85rem;">
+          <div>
+            Status shifted to: <strong style="color:var(--primary-navy);">{{ h.status }}</strong>
+            {% if h.changed_by_name %}
+              &bull; <span class="text-muted">By: {{ h.changed_by_name }} ({{ h.changed_by_role }})</span>
+            {% else %}
+              &bull; <span class="text-muted">By: System / Customer Gateway</span>
+            {% endif %}
+          </div>
+          <div style="font-size:0.78rem; color:var(--text-muted);">
+            {{ h.changed_at.strftime('%d %b %Y, %H:%M:%S') }}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Right: Client Particulars & Payment Log -->
+  <div style="display:flex; flex-direction:column; gap:2rem;">
+    <!-- Client Profile -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <h3 class="card-title">Client Details</h3>
+        <a href="{{ url_for('customer_detail', id=order.customer_id) }}" class="btn btn-secondary btn-sm" target="_blank">
+          CRM Profile &rarr;
+        </a>
+      </div>
+      <div style="font-size:0.88rem; line-height:1.7;">
+        <div>Name: <strong>{{ order.ship_name }}</strong></div>
+        <div>Phone: <strong>{{ order.ship_phone }}</strong></div>
+        <div>Account Email: <strong>{{ customer_email or '—' }}</strong></div>
+        <div style="margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid var(--border-light);">
+          <span class="text-muted">Shipping Destination:</span>
+          <div>{{ order.ship_address }}</div>
+          <div>{{ order.ship_city }}, {{ order.ship_state }} &ndash; {{ order.ship_pincode }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payments Log -->
+    <div class="card" style="margin-bottom:0;">
+      <div class="card-header">
+        <h3 class="card-title">Settlement Transactions</h3>
+      </div>
+      <div style="font-size:0.85rem;">
+        {% if payments %}
+          {% for p in payments %}
+          <div style="padding:0.75rem; border:1px solid var(--border-light); border-radius:var(--radius-sm); margin-bottom:0.75rem; background:var(--bg-ivory);">
+            <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem;">
+              <strong>{{ p.method }} &bull; {{ p.amount|inr }}</strong>
+              {% if p.status == 'Success' %}
+                <span class="badge badge-success">Success</span>
+              {% elif p.status == 'Failed' %}
+                <span class="badge badge-danger">Failed</span>
+              {% else %}
+                <span class="badge badge-warning">Pending</span>
+              {% endif %}
+            </div>
+            {% if p.transaction_ref %}
+              <div style="font-family:monospace; font-size:0.78rem;">Ref: {{ p.transaction_ref }}</div>
+            {% endif %}
+            {% if p.failure_reason %}
+              <div style="color:var(--status-danger); font-size:0.78rem;">Reason: {{ p.failure_reason }}</div>
+            {% endif %}
+            <div class="text-muted" style="font-size:0.72rem; margin-top:0.25rem;">
+              Timestamp: {{ p.created_at.strftime('%d %b %Y, %H:%M') }}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="text-muted">No payment logs recorded.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function confirmTransition(form) {
+    const val = document.getElementById('newStatusSelect').value;
+    if (!val) return false;
+    if (val === 'Cancelled') {
+      return confirm('WARNING: Cancelling this order will mark payment as Refunded and restore product inventory back into stock. Proceed?');
+    }
+    return confirm('Are you sure you want to transition this order to: ' + val + '?');
+  }
+</script>
+{% endblock %}

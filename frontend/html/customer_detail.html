@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{{ customer.name }} ({{ customer.customer_code }}) | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}Client Profile: {{ customer.name }}{% endblock %}
+
+{% block topbar_actions %}
+<div style="display:flex; gap:0.5rem;">
+  <a href="{{ url_for('manager_orders') }}" class="btn btn-gold btn-sm">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+    View Orders
+  </a>
+  <a href="{{ url_for('customer_edit', id=customer.id) }}" class="btn btn-secondary btn-sm">Edit Profile</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Client Info & Summary Cards -->
+<div style="display:grid; grid-template-columns: 1fr 2fr; gap:2rem; margin-bottom:2rem;">
+  <!-- Client Profile Card -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <h3 class="card-title">Client Details</h3>
+      <span class="badge badge-gold">{{ customer.customer_code }}</span>
+    </div>
+    <div style="font-size:0.9rem; line-height:1.9;">
+      <div><span class="text-muted">Full Name:</span> <strong>{{ customer.name }}</strong></div>
+      <div><span class="text-muted">Phone:</span> <strong>{{ customer.phone }}</strong></div>
+      <div><span class="text-muted">Email:</span> {{ customer.email or '—' }}</div>
+      <div><span class="text-muted">City:</span> {{ customer.city or '—' }}</div>
+      <div><span class="text-muted">Address:</span> {{ customer.address or '—' }}</div>
+      <div><span class="text-muted">Enrolled:</span> {{ customer.created_at.strftime('%d %B %Y') if customer.created_at else '—' }}</div>
+      <div><span class="text-muted">Online Account:</span> 
+        {% if customer_account %}
+          <span class="badge badge-success" style="font-size:0.75rem;">Registered ({{ customer_account.email }})</span>
+        {% else %}
+          <span class="badge badge-secondary" style="font-size:0.75rem; background:var(--bg-ivory); color:var(--text-muted); border:1px solid var(--border-warm);">No Online Account</span>
+        {% endif %}
+      </div>
+      <div style="margin-top:1rem; padding-top:0.75rem; border-top:1px solid var(--border-light);">
+        <span class="text-muted">Available Loyalty Rewards:</span>
+        <div style="font-size:1.4rem; font-weight:700; color:#C9A24B;">
+          {{ customer.loyalty_points }} Points
+        </div>
+        <div class="text-muted" style="font-size:0.75rem;">1 Point granted per ₹1,000 billed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cumulative Purchases Metric Cards -->
+  <div style="display:flex; flex-direction:column; gap:1.25rem;">
+    <div class="kpi-grid" style="margin-bottom:0;">
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Lifetime Spend</div>
+          <div class="kpi-val">{{ summary.total_spent|inr }}</div>
+        </div>
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Total Invoices</div>
+          <div class="kpi-val">{{ summary.total_orders }}</div>
+        </div>
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div>
+          <div class="kpi-label">Average Order</div>
+          <div class="kpi-val">{{ summary.avg_order|inr }}</div>
+        </div>
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Note / Action -->
+    <div class="card" style="margin-bottom:0; background:#FAF8F3; border-color:var(--border-warm);">
+      <div style="display:flex; align-items:center; justify-content:space-between;">
+        <div>
+          <div style="font-weight:600; color:#0F1B2D;">View this customer's online orders</div>
+          <p class="text-muted" style="font-size:0.85rem;">Browse and manage all orders placed by this client.</p>
+        </div>
+        <a href="{{ url_for('manager_orders', q=customer.name) }}" class="btn btn-gold btn-sm">View Orders &rarr;</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Purchase History Table -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border-light); display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h3 class="card-title" style="margin-bottom:2px;">Purchase History Ledger</h3>
+      <div class="text-muted" style="font-size:0.8rem;">Every tax invoice billed under this client's profile</div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Invoice Date</th>
+          <th>Billed By</th>
+          <th>Mode</th>
+          <th class="text-right">Subtotal</th>
+          <th class="text-right">GST (3%)</th>
+          <th class="text-right">Grand Total</th>
+          <th class="text-center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td><strong style="color:#0F1B2D;">{{ inv.invoice_no }}</strong></td>
+          <td>{{ inv.invoice_date.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td>{{ inv.billed_by }}</td>
+          <td><span class="badge badge-gold">{{ inv.payment_mode }}</span></td>
+          <td class="text-right">{{ inv.subtotal|inr }}</td>
+          <td class="text-right">{{ inv.gst_amount|inr }}</td>
+          <td class="text-right"><strong style="color:#0F1B2D;">{{ inv.grand_total|inr }}</strong></td>
+          <td class="text-center">
+            <a href="{{ url_for('invoice_view', id=inv.id) }}" class="btn-icon" title="View & Print Tax Invoice">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="text-center" style="padding:3rem;">
+            <p class="text-muted">No purchase records recorded yet for this client.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Online Store Orders Table -->
+<div class="card" style="padding:0; overflow:hidden; margin-top:2rem;">
+  <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border-light); display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h3 class="card-title" style="margin-bottom:2px;">Online Store Orders</h3>
+      <div class="text-muted" style="font-size:0.8rem;">E-Commerce website orders placed by this client</div>
+    </div>
+    <span class="badge badge-info">{{ online_orders|length }} Online Orders</span>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Order Ref</th>
+          <th>Placed On</th>
+          <th>Delivery Recipient</th>
+          <th class="text-right">Grand Total</th>
+          <th class="text-center">Payment</th>
+          <th class="text-center">Status</th>
+          <th class="text-right">Invoice &amp; Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in online_orders %}
+        <tr>
+          <td>
+            <a href="{{ url_for('manager_order_detail', id=o.id) }}" style="font-weight:700; color:var(--primary-navy); text-decoration:none;">
+              {{ o.order_no }}
+            </a>
+          </td>
+          <td>{{ o.created_at.strftime('%d %b %Y, %I:%M %p') }}</td>
+          <td>{{ o.ship_name }} ({{ o.ship_city }})</td>
+          <td class="text-right"><strong style="color:var(--primary-navy);">{{ o.grand_total|inr }}</strong></td>
+          <td class="text-center">
+            {% if o.payment_status == 'Paid' %}
+              <span class="badge badge-success">Paid</span>
+            {% elif o.payment_status == 'Failed' %}
+              <span class="badge badge-danger">Failed</span>
+            {% elif o.payment_status == 'Refunded' %}
+              <span class="badge badge-info">Refunded</span>
+            {% else %}
+              <span class="badge badge-warning">Pending</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if o.order_status == 'Delivered' %}
+              <span class="badge badge-success">Delivered</span>
+            {% elif o.order_status == 'Shipped' %}
+              <span class="badge badge-info">Shipped</span>
+            {% elif o.order_status == 'Confirmed' %}
+              <span class="badge badge-gold">Confirmed</span>
+            {% elif o.order_status == 'Cancelled' %}
+              <span class="badge badge-danger">Cancelled</span>
+            {% else %}
+              <span class="badge badge-warning">Pending</span>
+            {% endif %}
+          </td>
+          <td class="text-right">
+            <div style="display:inline-flex; gap:0.4rem;">
+              <a href="{{ url_for('manager_order_detail', id=o.id) }}" class="btn btn-secondary btn-sm">Inspect</a>
+              {% if o.payment_status == 'Paid' and o.invoice_no %}
+                <a href="{{ url_for('manager_order_invoice_pdf', id=o.id) }}" class="btn btn-gold btn-sm" title="Download PDF Tax Invoice">
+                  PDF Bill
+                </a>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center" style="padding:2.5rem;">
+            <p class="text-muted">No online orders placed yet by this client.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

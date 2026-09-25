@@ -1,0 +1,36 @@
+# Python Virtual Environment
+venv/
+env/
+ENV/
+.venv/
+
+# Python Bytecode & Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+
+# MySQL Local Data & Binary Logs
+mysql_data/
+*.sock
+*.pid
+
+# Environment & Secrets
+.env
+.env.local
+
+# OS Metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor Configs
+.idea/
+.vscode/
+*.swp
+*.swo

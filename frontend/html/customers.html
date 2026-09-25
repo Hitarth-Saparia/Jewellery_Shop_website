@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %}Client Directory | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}Client Profiles & Loyalty{% endblock %}
+
+{% block topbar_actions %}
+<a href="{{ url_for('customer_add') }}" class="btn btn-gold btn-sm">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+  Register New Client
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Search & City Filter -->
+<form method="GET" action="{{ url_for('customers_list') }}" class="filter-bar">
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by client name, mobile number, code..." />
+  </div>
+
+  <select name="city" class="form-control" style="width:180px;" onchange="this.form.submit()">
+    <option value="" {% if not current_city %}selected{% endif %}>All Cities</option>
+    {% for c in cities %}
+    <option value="{{ c }}" {% if current_city == c %}selected{% endif %}>{{ c }}</option>
+    {% endfor %}
+  </select>
+
+  <button type="submit" class="btn btn-primary btn-sm">Search</button>
+  {% if q or current_city %}
+  <a href="{{ url_for('customers_list') }}" class="btn btn-secondary btn-sm">Clear</a>
+  {% endif %}
+</form>
+
+<!-- Customers Table -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Client Code</th>
+          <th>Full Name</th>
+          <th>Mobile Phone</th>
+          <th>City</th>
+          <th class="text-center">Loyalty Points</th>
+          <th>Member Since</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customers %}
+        <tr>
+          <td><strong style="color:#C9A24B;">{{ c.customer_code }}</strong></td>
+          <td>
+            <a href="{{ url_for('customer_detail', id=c.id) }}" style="font-weight:600; color:#0F1B2D;">
+              {{ c.name }}
+            </a>
+            {% if c.email %}
+            <div class="text-muted" style="font-size:0.75rem;">{{ c.email }}</div>
+            {% endif %}
+          </td>
+          <td>{{ c.phone }}</td>
+          <td>{{ c.city or '—' }}</td>
+          <td class="text-center">
+            <span class="badge badge-gold" title="1 Point = ₹1,000 spent">
+              {{ c.loyalty_points }} pts
+            </span>
+          </td>
+          <td class="text-muted" style="font-size:0.8rem;">
+            {{ c.created_at.strftime('%d %b %Y') if c.created_at else '—' }}
+          </td>
+          <td class="text-right">
+            <div class="action-btns" style="justify-content:flex-end;">
+              <a href="{{ url_for('customer_detail', id=c.id) }}" class="btn-icon" title="View Client Orders">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              </a>
+
+              <a href="{{ url_for('customer_detail', id=c.id) }}" class="btn-icon" title="View Profile & Ledger">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              </a>
+
+              <a href="{{ url_for('customer_edit', id=c.id) }}" class="btn-icon" title="Edit Profile">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+              </a>
+
+              {% if current_user.role == 'admin' %}
+              <form action="{{ url_for('customer_delete', id=c.id) }}" method="POST" style="display:inline;" onsubmit="return confirmAction('Delete this customer record?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                <button type="submit" class="btn-icon btn-icon-danger" title="Delete Client">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                </button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center" style="padding:3rem;">
+            <div style="font-size:1.1rem; color:#1E2430; margin-bottom:0.5rem;">No clients match your search</div>
+            <p class="text-muted" style="font-size:0.85rem;">Try modifying your phone or name filter.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+  <div>Showing page {{ page }} of {{ total_pages }} ({{ total_count }} total clients)</div>
+  <div class="page-controls">
+    <a href="{{ url_for('customers_list', page=page-1, q=q, city=current_city) }}" class="page-btn {% if page <= 1 %}disabled{% endif %}">&laquo; Prev</a>
+    {% for p_num in range(1, total_pages + 1) %}
+      {% if p_num == page or (p_num >= page - 2 and p_num <= page + 2) or p_num == 1 or p_num == total_pages %}
+        <a href="{{ url_for('customers_list', page=p_num, q=q, city=current_city) }}" class="page-btn {% if p_num == page %}active{% endif %}">{{ p_num }}</a>
+      {% elif p_num == page - 3 or p_num == page + 3 %}
+        <span style="padding:0 4px; color:#9CA3AF;">...</span>
+      {% endif %}
+    {% endfor %}
+    <a href="{{ url_for('customers_list', page=page+1, q=q, city=current_city) }}" class="page-btn {% if page >= total_pages %}disabled{% endif %}">Next &raquo;</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

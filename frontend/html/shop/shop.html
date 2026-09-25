@@ -1,0 +1,357 @@
+{% extends "base.html" %}
+
+{% block title %}Boutique Catalog & Collections | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block full_page %}
+<!-- Storefront Header Navigation -->
+<header class="landing-nav storefront-header" id="landingNav">
+  <a href="{{ url_for('home') }}" class="brand-mark">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+      <path d="M6 3h12l4 6-10 12L2 9z"></path>
+      <path d="M11 3v18"></path>
+      <path d="M2 9h20"></path>
+    </svg>
+    <div>
+      <span class="brand-text" style="font-size:1.35rem; color:#FFFFFF;">VIJAYRAJ</span>
+      <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems & Jewellery</span>
+    </div>
+  </a>
+
+  <!-- Search Bar -->
+  <form action="{{ url_for('shop_catalog') }}" method="GET" class="nav-search-form">
+    <input type="text" name="q" value="{{ search_query or '' }}" placeholder="Search jewellery..." class="nav-search-input" aria-label="Search catalog">
+    <button type="submit" class="nav-search-btn" aria-label="Submit search">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    </button>
+  </form>
+
+  <nav class="nav-links">
+    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+    <a href="{{ url_for('shop_catalog') }}" class="nav-link" style="color:var(--accent-gold); font-weight:600;">Shop All</a>
+    <a href="{{ url_for('home') }}#rates" class="nav-link">Live Rates</a>
+
+    <!-- Cart Icon with Count Badge -->
+    <a href="{{ url_for('view_cart') }}" class="nav-cart-btn" aria-label="Shopping Cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+      </svg>
+      {% if cart_count > 0 %}
+        <span class="nav-cart-badge">{{ cart_count }}</span>
+      {% endif %}
+    </a>
+
+    <!-- Customer Account -->
+    {% if current_customer %}
+      <a href="{{ url_for('customer_profile') }}" class="btn btn-gold btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem;">My Profile</a>
+      <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-gold btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem;">My Orders</a>
+      <a href="{{ url_for('customer_logout') }}" class="nav-link" style="font-size:0.82rem; color:#CBD5E1;">Sign Out</a>
+    {% else %}
+      <a href="{{ url_for('customer_login') }}" class="btn btn-outline-gold btn-sm">Sign In</a>
+    {% endif %}
+
+    {% if current_user %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-gold btn-sm" style="margin-left:0.5rem;">Staff Portal</a>
+    {% endif %}
+  </nav>
+</header>
+
+<!-- Catalog Breadcrumb & Banner -->
+<div style="background:var(--primary-navy); padding: 2.5rem 2rem 2rem 2rem; color:#FFFFFF; border-bottom:1px solid rgba(201,162,75,0.3);">
+  <div style="max-width: 1360px; margin: 0 auto;">
+    <div style="font-size:0.85rem; color:#C9A24B; margin-bottom:0.5rem;">
+      <a href="{{ url_for('home') }}" style="color:#C9A24B; text-decoration:none;">Home</a> &bull; 
+      <span style="color:#CBD5E1;">Online Boutique</span>
+      {% if current_category %} &bull; <strong style="color:#FFFFFF;">{{ current_category.name }}</strong>{% endif %}
+    </div>
+    <h1 style="font-family:var(--font-serif); font-size:2.2rem; font-weight:600; margin-bottom:0.25rem;">
+      {% if current_category %}{{ current_category.name }}{% elif search_query %}Search: "{{ search_query }}"{% else %}Certified Diamond &amp; Gemstone Jewellery{% endif %}
+    </h1>
+    <p style="color:rgba(255,255,255,0.7); font-size:0.95rem; max-width:700px;">
+      {% if current_category %}{{ current_category.description }}{% else %}Explore certified solitaire diamonds, precious gemstones, and fine jewellery mounted in gold, silver, and platinum settings.{% endif %}
+    </p>
+  </div>
+</div>
+
+<!-- Live Stone Spot Rates Strip in Shop -->
+{% if metal_rates %}
+<div class="metal-rates-strip" style="background:#0b1320; border-bottom:1px solid rgba(201,162,75,0.3); padding:0.6rem 1.5rem;">
+  <div style="max-width:1360px; margin:0 auto; display:flex; align-items:center; gap:1.25rem;">
+    <div style="display:flex; align-items:center; gap:0.5rem; white-space:nowrap; flex-shrink:0;">
+      <span class="live-dot-pulse"></span>
+      <span style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#FAF7F2; font-weight:700;">Live Gem &amp; Stone Rates:</span>
+    </div>
+    <div style="display:flex; gap:1.5rem; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; ms-overflow-style:none; flex:1; min-width:0; padding:4px 0;" class="live-rates-track">
+      {% for rate in metal_rates %}
+      <div class="rate-badge" data-metal="{{ rate.metal }}" style="display:flex; align-items:center; gap:6px; white-space:nowrap; font-size:0.78rem; flex-shrink:0;">
+        <span style="color:#94A3B8;">{{ rate.metal }}:</span>
+        <span class="rate-val" data-metal="{{ rate.metal }}" style="color:#C9A24B; font-weight:700;">{{ rate.rate_per_gram|inr }} /{{ rate.unit or 'ct' }}</span>
+        <span class="rate-change-pill up" data-metal="{{ rate.metal }}" style="font-size:0.68rem; padding:1px 5px;">▲ Live</span>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Main Shop Container -->
+<div style="max-width: 1360px; margin: 2rem auto; padding: 0 1.5rem;">
+  <div class="shop-layout">
+    <!-- Left Filter Sidebar -->
+    <aside class="shop-filter-panel">
+      <form action="{{ url_for('shop_catalog') }}" method="GET" id="filterForm">
+        {% if search_query %}
+          <input type="hidden" name="q" value="{{ search_query }}">
+        {% endif %}
+
+        <!-- Category Filter -->
+        <div class="filter-block">
+          <div class="filter-title">Collections</div>
+          <ul class="filter-list">
+            <li>
+              <a href="{{ url_for('shop_catalog', q=search_query, in_stock=in_stock, sort=current_sort, min_price=min_price, max_price=max_price) }}" 
+                 class="filter-item-link {% if not selected_category_slug %}active{% endif %}">
+                <span>All Collections</span>
+                <span class="filter-count-badge">{{ total_all_products }}</span>
+              </a>
+            </li>
+            {% for cat in categories %}
+            <li>
+              <a href="{{ url_for('shop_catalog', category=cat.slug, q=search_query, in_stock=in_stock, sort=current_sort, min_price=min_price, max_price=max_price) }}" 
+                 class="filter-item-link {% if selected_category_slug == cat.slug %}active{% endif %}">
+                <span>{{ cat.name }}</span>
+                <span class="filter-count-badge">{{ cat.product_count }}</span>
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
+          {% if selected_category_slug %}
+            <input type="hidden" name="category" value="{{ selected_category_slug }}">
+          {% endif %}
+        </div>
+
+        <!-- Availability Filter -->
+        <div class="filter-block">
+          <div class="filter-title">Availability</div>
+          <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.88rem; color:var(--text-primary); cursor:pointer;">
+            <input type="checkbox" name="in_stock" value="1" {% if in_stock %}checked{% endif %} onchange="document.getElementById('filterForm').submit()">
+            <span>In Stock Only</span>
+          </label>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="filter-block">
+          <div class="filter-title">Price Range (₹)</div>
+          <div class="filter-range-row">
+            <input type="number" name="min_price" value="{{ min_price or '' }}" placeholder="Min" class="filter-range-input" min="0" step="500">
+            <span style="color:var(--text-muted);">&ndash;</span>
+            <input type="number" name="max_price" value="{{ max_price or '' }}" placeholder="Max" class="filter-range-input" min="0" step="500">
+          </div>
+          <button type="submit" class="btn btn-secondary btn-sm" style="width:100%; margin-top:0.75rem;">Apply Price</button>
+        </div>
+
+        <!-- Reset Button -->
+        {% if selected_category_slug or search_query or in_stock or min_price or max_price %}
+        <div style="margin-top:1.25rem;">
+          <a href="{{ url_for('shop_catalog') }}" class="btn btn-outline-gold btn-sm" style="width:100%; text-align:center; display:block; text-decoration:none;">
+            Clear All Filters
+          </a>
+        </div>
+        {% endif %}
+      </form>
+    </aside>
+
+    <!-- Right Products Column -->
+    <div>
+      <!-- Shop Toolbar -->
+      <div class="shop-toolbar">
+        <div class="shop-toolbar-meta">
+          Showing <strong>{{ pagination.total }}</strong> {% if pagination.total == 1 %}piece{% else %}pieces{% endif %}
+          {% if current_category %} in <em>{{ current_category.name }}</em>{% endif %}
+        </div>
+
+        <div class="shop-sort-group">
+          <label for="sortSelect" style="font-size:0.85rem; color:var(--text-muted);">Sort By:</label>
+          <select id="sortSelect" class="shop-sort-select" onchange="applySort(this.value)">
+            <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Newest Additions</option>
+            <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Active Filters Chips -->
+      {% if selected_category_slug or search_query or in_stock or min_price or max_price %}
+      <div class="active-filters-row" style="margin-bottom:1.5rem;">
+        {% if selected_category_slug %}
+          <span class="filter-chip">Category: {{ current_category.name }} <a href="{{ url_for('shop_catalog', q=search_query, in_stock=in_stock, sort=current_sort, min_price=min_price, max_price=max_price) }}" style="color:inherit; text-decoration:none; margin-left:2px;">&times;</a></span>
+        {% endif %}
+        {% if search_query %}
+          <span class="filter-chip">Query: "{{ search_query }}" <a href="{{ url_for('shop_catalog', category=selected_category_slug, in_stock=in_stock, sort=current_sort, min_price=min_price, max_price=max_price) }}" style="color:inherit; text-decoration:none; margin-left:2px;">&times;</a></span>
+        {% endif %}
+        {% if in_stock %}
+          <span class="filter-chip">In Stock Only <a href="{{ url_for('shop_catalog', category=selected_category_slug, q=search_query, sort=current_sort, min_price=min_price, max_price=max_price) }}" style="color:inherit; text-decoration:none; margin-left:2px;">&times;</a></span>
+        {% endif %}
+        {% if min_price or max_price %}
+          <span class="filter-chip">₹{{ min_price or 0 }} &ndash; ₹{{ max_price or 'Any' }} <a href="{{ url_for('shop_catalog', category=selected_category_slug, q=search_query, in_stock=in_stock, sort=current_sort) }}" style="color:inherit; text-decoration:none; margin-left:2px;">&times;</a></span>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Products Grid -->
+      {% if products %}
+        <div class="products-grid" style="grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));">
+          {% for p in products %}
+          <div class="product-card">
+            <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+              <div class="product-media">
+                <img src="{{ p.image_url }}" alt="{{ p.name }}" loading="lazy">
+                <span class="category-tag">{{ p.category_name or p.category }}</span>
+                {% if p.stock_qty <= 0 %}
+                  <span class="stock-tag" style="background:var(--status-danger-bg); color:var(--status-danger);">Out of Stock</span>
+                {% elif p.stock_qty <= 5 %}
+                  <span class="stock-tag low-stock">Only {{ p.stock_qty }} left</span>
+                {% else %}
+                  <span class="stock-tag in-stock">In Stock</span>
+                {% endif %}
+              </div>
+            </a>
+            <div class="product-body">
+              <div class="product-code-meta">{{ p.product_code }} {% if p.jewellery_type %}&bull; {{ p.jewellery_type }}{% endif %}</div>
+              <h3 class="product-title">
+                <a href="{{ url_for('product_detail_view', product_id=p.id) }}" style="text-decoration:none; color:inherit;">
+                  {{ p.name }}
+                </a>
+              </h3>
+              <div class="product-specs">
+                <span>Stone: <strong>{{ p.stone_type or 'Precious Gem' }}</strong></span>
+                <span>Mount: <strong>{{ p.purity or '18K Setting' }}</strong></span>
+              </div>
+              <div class="product-price-bar">
+                <div class="product-price-row">
+                  <span class="product-price-label">Price (incl. Making)</span>
+                  <span class="price-val">{{ p.price|inr }}</span>
+                </div>
+                <div class="product-actions-group">
+                  <a href="{{ url_for('product_detail_view', product_id=p.id) }}" class="btn btn-outline-gold btn-sm btn-view">
+                    View
+                  </a>
+                  {% if p.stock_qty > 0 %}
+                    <form action="{{ url_for('cart_add') }}" method="POST" class="product-cart-form">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                      <input type="hidden" name="product_id" value="{{ p.id }}">
+                      <input type="hidden" name="quantity" value="1">
+                      <button type="submit" class="btn btn-gold btn-sm" title="Add to Cart">Add to Cart</button>
+                    </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Server-side Pagination -->
+        {% if pagination.total_pages > 1 %}
+        <div class="pagination">
+          <div>
+            Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to {{ [pagination.page * pagination.per_page, pagination.total]|min }} of {{ pagination.total }} pieces
+          </div>
+          <div class="page-controls">
+            {% if pagination.has_prev %}
+              <a href="{{ url_for('shop_catalog', page=pagination.page - 1, category=selected_category_slug, q=search_query, in_stock=in_stock, sort=current_sort, min_price=min_price, max_price=max_price) }}" class="page-btn">&larr; Prev</a>
+            {% else %}
+              <span class="page-btn disabled">&larr; Prev</span>
+            {% endif %}
+
+            {% for pnum in range(1, pagination.total_pages + 1) %}
+              {% if pnum == pagination.page %}
+                <span class="page-btn active">{{ pnum }}</span>
+              {% elif pnum <= 2 or pnum >= pagination.total_pages - 1 or (pnum >= pagination.page - 1 and pnum <= pagination.page + 1) %}
+                <a href="{{ url_for('shop_catalog', page=pnum, category=selected_category_slug, q=search_query, in_stock=in_stock, sort=current_sort, min_price=min_price, max_price=max_price) }}" class="page-btn">{{ pnum }}</a>
+              {% elif pnum == 3 or pnum == pagination.total_pages - 2 %}
+                <span class="page-btn disabled">...</span>
+              {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+              <a href="{{ url_for('shop_catalog', page=pagination.page + 1, category=selected_category_slug, q=search_query, in_stock=in_stock, sort=current_sort, min_price=min_price, max_price=max_price) }}" class="page-btn">Next &rarr;</a>
+            {% else %}
+              <span class="page-btn disabled">Next &rarr;</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+
+      {% else %}
+        <!-- Empty State -->
+        <div class="card" style="text-align:center; padding:4rem 2rem;">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent-gold); margin-bottom:1rem;">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <h2 style="font-family:var(--font-serif); font-size:1.5rem; color:var(--primary-navy); margin-bottom:0.5rem;">No Pieces Found</h2>
+          <p class="text-muted" style="max-width:450px; margin:0 auto 1.5rem auto;">
+            We could not find any fine jewellery matching your selected filters. Please adjust your criteria or browse our curated collections.
+          </p>
+          <a href="{{ url_for('shop_catalog') }}" class="btn btn-gold">Browse All Collections</a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="brand-title">VIJAYRAJ GEMS & JEWELLERY</div>
+      <p>Haute joaillerie specializing exclusively in certified diamonds and rare gemstones, mounted in precious 18K gold, platinum, and sterling silver settings.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Collections</h4>
+      <ul>
+        {% for cat in categories[:5] %}
+        <li><a href="{{ url_for('shop_catalog', category=cat.slug) }}">{{ cat.name }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Customer Care</h4>
+      <ul>
+        <li><a href="{{ url_for('customer_orders') }}">Track Orders</a></li>
+        <li><a href="{{ url_for('customer_login') }}">Customer Sign In</a></li>
+        <li><a href="{{ url_for('home') }}#rates">Bullion Spot Rates</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Flagship Boutique</h4>
+      <p style="font-size:0.85rem; line-height:1.6; color:rgba(255,255,255,0.85);">
+        <strong>VijayRaj Gems and jewellery</strong><br>
+        C1, N Main Rd, near Loftman Clothing Lane,<br>
+        Koregaon Park, Pune, Maharashtra 411001.<br>
+        <span style="color:#10B981; font-weight:600;">Mon - Sun: 9:00 AM – 10:30 PM</span><br>
+        Phone: <a href="tel:+919172387741" style="color:#C9A24B; text-decoration:none; font-weight:700;">+91 91723 87741</a><br>
+        <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" style="color:var(--accent-gold); text-decoration:underline; font-size:0.8rem;">
+          View on Google Maps &rarr;
+        </a>
+      </p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>&copy; {{ current_year }} VijayRaj Gems and jewellery. All Rights Reserved. &bull; 4.8 ★ Google Verified</div>
+  </div>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function applySort(sortVal) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', sortVal);
+    url.searchParams.set('page', '1');
+    window.location.href = url.toString();
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}Customer Sign In | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block full_page %}
+<div class="login-split-page">
+  <!-- Left Side: Editorial Luxury Art Panel -->
+  <div class="login-art-panel">
+    <img src="{{ url_for('static', filename='images/hero-2.jpg') }}" alt="Vijayraj Fine Diamond Jewellery">
+    <div class="art-overlay">
+      <div class="brand-mark">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+          <path d="M6 3h12l4 6-10 12L2 9z"></path>
+          <path d="M11 3v18"></path>
+          <path d="M2 9h20"></path>
+        </svg>
+        <div>
+          <span class="brand-text" style="font-size:1.5rem; color:#FFFFFF;">VIJAYRAJ</span>
+          <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems & Jewellery</span>
+        </div>
+      </div>
+
+      <div>
+        <span class="overline" style="color:#C9A24B;">Client Boutique Access</span>
+        <h1 class="art-headline">Your Private Sanctuary of Fine Jewellery</h1>
+        <p class="art-sub">Sign in to track orders, access statutory bills, curate bespoke selections, and experience seamless doorstep delivery.</p>
+      </div>
+
+      <div style="font-size:0.8rem; color:rgba(255,255,255,0.45);">
+        &copy; {{ current_year }} Vijayraj Gems and Jewellery. Certified E-Boutique.
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Form Panel -->
+  <div class="login-form-panel">
+    <div class="login-card-inner">
+      <div style="margin-bottom:2rem;">
+        <a href="{{ url_for('home') }}" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem; color:#6B7280; margin-bottom:1.5rem; text-decoration:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to Public Storefront
+        </a>
+        <h2 class="login-title">Customer Sign In</h2>
+        <p class="login-instruction">Enter your registered email and password to access your account.</p>
+      </div>
+
+      <form action="{{ url_for('customer_login') }}{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="e.g. demo@customer.com" required autofocus value="{{ request.form.get('email', '') }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="••••••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.85rem; margin-top:0.5rem;">
+          Sign In to Account
+        </button>
+      </form>
+
+      <div style="margin-top:1.5rem; text-align:center; font-size:0.9rem; color:#6B7280;">
+        New to Vijayraj? <a href="{{ url_for('customer_register') }}{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" style="color:var(--accent-gold); font-weight:600; text-decoration:none;">Create an Account &rarr;</a>
+      </div>
+
+      <div style="margin-top:1rem; text-align:center; font-size:0.85rem; color:#9CA3AF;">
+        Jewellery House Staff? <a href="{{ url_for('login') }}" style="color:#6B7280; text-decoration:underline;">Staff Portal Login</a>
+      </div>
+
+      <!-- Demo Accounts Helper Pill -->
+      <div class="demo-accounts-pill" style="margin-top:2rem;">
+        <div style="font-weight:600; color:#1E2430; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px;">Quick Demo Customer:</div>
+        <div class="demo-pills">
+          <button type="button" class="pill-btn" onclick="fillDemo('demo@customer.com', 'Customer@123')">
+            <strong>Customer:</strong> demo@customer.com / Customer@123
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function fillDemo(email, password) {
+    document.getElementById('email').value = email;
+    document.getElementById('password').value = password;
+  }
+</script>
+{% endblock %}

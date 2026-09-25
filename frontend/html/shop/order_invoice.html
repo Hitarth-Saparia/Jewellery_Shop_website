@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Tax Invoice {{ order.invoice_no }} | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block topbar_actions %}
+<div class="no-print" style="display:flex; gap:0.75rem;">
+  {% if current_customer %}
+    <a href="{{ url_for('customer_order_invoice_pdf', order_id=order.id) }}" class="btn btn-gold btn-sm">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Download PDF Bill
+    </a>
+  {% elif current_user %}
+    <a href="{{ url_for('manager_order_invoice_pdf', id=order.id) }}" class="btn btn-gold btn-sm">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+      Download PDF Bill
+    </a>
+  {% endif %}
+  <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+    Print Invoice
+  </button>
+  {% if current_customer %}
+    <a href="{{ url_for('customer_order_detail', order_id=order.id) }}" class="btn btn-secondary btn-sm">&larr; Back to Order</a>
+  {% elif current_user %}
+    <a href="{{ url_for('manager_order_detail', id=order.id) }}" class="btn btn-secondary btn-sm">&larr; Back to Order</a>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="invoice-container">
+  <!-- Invoice Header -->
+  <div class="invoice-header">
+    <div class="invoice-brand">
+      <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.25rem;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#C9A24B;">
+          <path d="M6 3h12l4 6-10 12L2 9z"></path>
+          <path d="M11 3v18"></path>
+          <path d="M2 9h20"></path>
+        </svg>
+        <h1 style="margin:0; font-size:1.85rem; letter-spacing:0.5px;">VIJAYRAJ GEMS & JEWELLERY</h1>
+      </div>
+      <p>
+        Haute Joaillerie &bull; Precious Gemstones &bull; Certified Solitaires<br>
+        C1, N Main Rd, near Loftman Clothing Lane, Damco Society, Koregaon Park, Pune 411001 &bull; Tel: +91 91723 87741<br>
+        <strong>GSTIN:</strong> 27AAACV1234F1Z5 &bull; <strong>BIS HUID Licence:</strong> HM/C-7654321
+      </p>
+    </div>
+
+    <div class="invoice-meta">
+      <div style="font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:#0F1B2D; margin-bottom:0.25rem;">TAX INVOICE</div>
+      <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:1px; color:#6B7280;">E-Boutique Consignment</div>
+      <div class="invoice-number">{{ order.invoice_no }}</div>
+      <div style="font-size:0.85rem; color:#1E2430; margin-top:0.25rem;">
+        Invoice Date: <strong>{{ order.updated_at.strftime('%d %B %Y') }}</strong><br>
+        Order Ref: <strong>{{ order.order_no }}</strong><br>
+        Payment: <strong style="color:#C9A24B;">{{ payment.method if payment else 'Online Transfer' }} (PAID)</strong><br>
+        {% if payment and payment.transaction_ref %}Txn Ref: <span style="font-family:monospace;">{{ payment.transaction_ref }}</span>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Customer Details Strip -->
+  <div class="invoice-customer-strip">
+    <div>
+      <span class="overline" style="color:#C9A24B; margin-bottom:0.2rem;">Client Particulars</span>
+      <div style="font-size:1.1rem; font-weight:700; color:#0F1B2D;">{{ order.ship_name }}</div>
+      <div style="color:#6B7280; font-size:0.85rem;">Client Code: {{ customer.customer_code if customer else 'ONLINE' }}</div>
+      <div style="color:#1E2430; font-size:0.85rem;">Phone: {{ order.ship_phone }}</div>
+    </div>
+    <div>
+      <span class="overline" style="color:#C9A24B; margin-bottom:0.2rem;">Delivery Destination</span>
+      <div style="color:#1E2430; font-size:0.85rem;">
+        {{ order.ship_address }}<br>
+        {{ order.ship_city }}, {{ order.ship_state }} &ndash; {{ order.ship_pincode }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Itemised Line Items Table -->
+  <table class="invoice-table">
+    <thead>
+      <tr>
+        <th style="width:30px; text-align:center;">#</th>
+        <th>JEWELLERY SPECIFICATION</th>
+        <th style="text-align:center;">PURITY</th>
+        <th style="text-align:right;">NET WT.</th>
+        <th style="text-align:right;">MAKING CHG</th>
+        <th class="text-center">QTY</th>
+        <th class="text-right">UNIT RATE</th>
+        <th class="text-right">AMOUNT (₹)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr>
+        <td style="color:#6B7280; text-align:center;">{{ loop.index }}</td>
+        <td>
+          <div style="font-weight:600; color:#0F1B2D;">{{ item.product_name }}</div>
+          <div class="text-muted" style="font-size:0.75rem;">Code: {{ item.product_code or '—' }} &bull; Category: {{ item.category or 'Diamond' }}</div>
+        </td>
+        <td style="text-align:center;">{{ item.purity or 'VVS1' }}</td>
+        <td style="text-align:right;">{{ "%.3f"|format(item.weight_grams|float) if item.weight_grams else '—' }}g</td>
+        <td style="text-align:right;">{{ item.making_charge|inr if item.making_charge else '—' }}</td>
+        <td class="text-center">{{ item.quantity }}</td>
+        <td class="text-right">{{ item.unit_price|inr }}</td>
+        <td class="text-right" style="font-weight:600; color:#0F1B2D;">{{ item.line_total|inr }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Invoice Totals Footer -->
+  <div class="invoice-totals-wrapper">
+    <div class="invoice-terms">
+      <h4 style="font-size:0.85rem; font-weight:700; color:#0F1B2D; letter-spacing:0.5px; margin-bottom:0.4rem;">STATUTORY TERMS &amp; GUARANTEE:</h4>
+      <p style="font-size:0.78rem; color:#4B5563; line-height:1.6;">
+        1. All gold ornaments sold are guaranteed 100% BIS Hallmarked with unique laser HUID.<br>
+        2. Natural diamonds certified under international 4C standards (IGI / GIA).<br>
+        3. Exchange and buyback acceptable at prevailing market bullion rates on presentation of original invoice.<br>
+        4. Subject to Mumbai judicial jurisdiction.
+      </p>
+    </div>
+
+    <div class="invoice-summary-box">
+      <div class="inv-sum-row">
+        <span>Subtotal (Gross Value):</span>
+        <span>{{ order.subtotal|inr }}</span>
+      </div>
+      <div class="inv-sum-row">
+        <span>CGST (1.5%):</span>
+        <span>{{ (order.gst_amount / 2)|inr }}</span>
+      </div>
+      <div class="inv-sum-row">
+        <span>SGST (1.5%):</span>
+        <span>{{ (order.gst_amount / 2)|inr }}</span>
+      </div>
+      {% if order.delivery_charge and order.delivery_charge > 0 %}
+      <div class="inv-sum-row">
+        <span>Insured Express Delivery:</span>
+        <span>{{ order.delivery_charge|inr }}</span>
+      </div>
+      {% endif %}
+      <div class="inv-sum-row grand-total">
+        <span>Grand Total:</span>
+        <span style="color:#0F1B2D;">{{ order.grand_total|inr }}</span>
+      </div>
+      <div class="inv-words-bar">
+        <strong>AMOUNT IN WORDS:</strong> {{ grand_total_words }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Signoff -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:3.5rem; padding-top:1.5rem; border-top:1px solid #E7E1D6;">
+    <div style="text-align:center; min-width:220px;">
+      <div style="border-top:1px solid #0F1B2D; width:100%; margin-bottom:8px;"></div>
+      <div style="font-size:0.82rem; color:#0F1B2D; font-weight:500;">Customer Signature</div>
+    </div>
+    <div style="text-align:center; min-width:220px;">
+      <div style="border-top:1px solid #0F1B2D; width:100%; margin-bottom:8px;"></div>
+      <div style="font-size:0.82rem; color:#0F1B2D; font-weight:500;">For Vijayraj Gems &amp; Jewellery</div>
+    </div>
+  </div>
+</div>
+{% endblock %}

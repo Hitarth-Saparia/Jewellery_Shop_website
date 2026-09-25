@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit {{ product.name }}{% else %}Add New Jewellery Item{% endif %} | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Jewellery Piece{% else %}Register New Jewellery Piece{% endif %}{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">{% if is_edit %}Edit Details: {{ product.product_code }}{% else %}Catalogue Specifications{% endif %}</h3>
+        <p class="text-muted" style="font-size:0.85rem;">Ensure weight, purity, making charges, and stock counts are precise.</p>
+      </div>
+      <a href="{{ url_for('products_list') }}" class="btn btn-secondary btn-sm">&larr; Back to Catalogue</a>
+    </div>
+
+    <form method="POST" action="{% if is_edit %}{{ url_for('product_edit', id=product.id) }}{% else %}{{ url_for('product_add') }}{% endif %}" enctype="multipart/form-data" autocomplete="off">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="product_code">Product Code *</label>
+          <input type="text" id="product_code" name="product_code" class="form-control"
+                 value="{{ product.product_code }}" {% if is_edit %}readonly style="background:#F8F5EE;"{% endif %}
+                 placeholder="e.g. GEM-RG-011 or DIA-NK-024" autocomplete="new-password" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="category">In-Store Billing Category *</label>
+          <select id="category" name="category" class="form-control" required>
+            <option value="">-- Select Category --</option>
+            {% for cat in ['Diamond', 'Gems'] %}
+              <option value="{{ cat }}" {% if product.category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- E-Commerce Category & Types -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="category_id">Online Boutique Category</label>
+          <select id="category_id" name="category_id" class="form-control">
+            <option value="">-- Unassigned / In-Store Only --</option>
+            {% for sc in shop_categories %}
+              <option value="{{ sc.id }}" {% if product.category_id == sc.id %}selected{% endif %}>{{ sc.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="jewellery_type">Jewellery Classification</label>
+          <input type="text" id="jewellery_type" name="jewellery_type" class="form-control"
+                 value="{{ product.jewellery_type or '' }}" placeholder="e.g. Ring, Necklace, Bracelet, Choker">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="name">Piece Name / Title *</label>
+          <input type="text" id="name" name="name" class="form-control" value="{{ product.name }}"
+                 placeholder="e.g. Royal Polki Bridal Choker Set" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="stone_type">Stone / Crystal Type</label>
+          <input type="text" id="stone_type" name="stone_type" class="form-control"
+                 value="{{ product.stone_type or '' }}" placeholder="e.g. Solitaire Diamond, Blue Sapphire, Crystal">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="purity">Stone Clarity / Setting Mount</label>
+          <input type="text" id="purity" name="purity" class="form-control" value="{{ product.purity }}"
+                 placeholder="e.g. VVS1 / 18K Gold Mount, VS2 / Pt950 Setting">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="design_code">Design / Hallmarking Code</label>
+          <input type="text" id="design_code" name="design_code" class="form-control" value="{{ product.design_code }}"
+                 placeholder="e.g. DS-2024-NK">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="weight_grams">Net Weight (Grams)</label>
+          <input type="number" step="0.001" id="weight_grams" name="weight_grams" class="form-control"
+                 value="{{ product.weight_grams or 0.0 }}" placeholder="0.000">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="making_charge">Making Charge (₹)</label>
+          <input type="number" step="0.01" id="making_charge" name="making_charge" class="form-control"
+                 value="{{ product.making_charge or 0.0 }}" placeholder="0.00">
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label" for="price">Retail Price (₹) *</label>
+          <input type="number" step="0.01" id="price" name="price" class="form-control"
+                 value="{{ product.price }}" placeholder="0.00" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="stock_qty">Stock Quantity (Units) *</label>
+          <input type="number" id="stock_qty" name="stock_qty" class="form-control"
+                 value="{{ product.stock_qty if product.stock_qty is not none else 1 }}" min="0" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="reorder_level">Low Stock Alert Threshold</label>
+        <input type="number" id="reorder_level" name="reorder_level" class="form-control"
+               value="{{ product.reorder_level or 5 }}" min="1">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="specifications">Artisan Specifications / Gemological Attributes</label>
+        <textarea id="specifications" name="specifications" class="form-control" rows="2"
+                  placeholder="e.g. 18K Rose Gold Solitaire Ring, 0.75ct Diamond (VVS1/E), IGI Certified...">{{ product.specifications or '' }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Detailed Description / Provenance</label>
+        <textarea id="description" name="description" class="form-control" rows="3"
+                  placeholder="Notes on clarity, certification (GIA/IGI), provenance...">{{ product.description }}</textarea>
+      </div>
+
+      <!-- Multiple Image Upload -->
+      <div class="form-group" style="background:var(--bg-ivory); padding:1.25rem; border-radius:var(--radius-sm); border:1px solid var(--border-warm);">
+        <label class="form-label" for="images">Product Imagery (Upload Multiple &bull; First is Primary Showcase)</label>
+        <input type="file" id="images" name="images" class="form-control" multiple accept="image/png,image/jpeg,image/webp">
+        <div class="text-muted" style="font-size:0.75rem; margin-top:4px;">
+          Accepts JPG, PNG, WEBP (Max 2MB per file). Automatically optimized and resized.
+        </div>
+
+        {% if product_images %}
+        <div style="margin-top:1rem;">
+          <div style="font-size:0.78rem; font-weight:600; text-transform:uppercase; color:var(--text-muted); margin-bottom:0.4rem;">
+            Existing Registered Photos:
+          </div>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            {% for pimg in product_images %}
+            <div style="position:relative; width:64px; height:64px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border-warm);">
+              <img src="{{ url_for('static', filename='images/' + pimg.image_path) }}" alt="Preview" style="width:100%; height:100%; object-fit:cover;">
+              {% if loop.first %}
+                <span style="position:absolute; bottom:0; left:0; right:0; background:rgba(15,27,45,0.75); color:#C9A24B; font-size:0.6rem; text-align:center; padding:1px 0;">Primary</span>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <!-- Featured and Active Flags -->
+      <div style="display:flex; gap:2rem; margin-top:1rem; padding:0.75rem 0;">
+        <label class="form-label" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+          <input type="checkbox" name="is_featured" value="1" {% if product.is_featured %}checked{% endif %}>
+          <span>Feature on Public Homepage</span>
+        </label>
+
+        <label class="form-label" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+          <input type="checkbox" name="is_active" value="1" {% if product.is_active is not defined or product.is_active %}checked{% endif %}>
+          <span>Piece is Active in Catalogue</span>
+        </label>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+        <a href="{{ url_for('products_list') }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-gold">
+          {% if is_edit %}Save Changes{% else %}Add to Inventory{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

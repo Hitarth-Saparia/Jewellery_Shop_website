@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile &amp; Saved Particulars | Vijayraj Gems &amp; Jewellery{% endblock %}
+
+{% block full_page %}
+<!-- Storefront Header Navigation -->
+<header class="landing-nav storefront-header" id="landingNav">
+  <a href="{{ url_for('home') }}" class="brand-mark">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+      <path d="M6 3h12l4 6-10 12L2 9z"></path>
+      <path d="M11 3v18"></path>
+      <path d="M2 9h20"></path>
+    </svg>
+    <div>
+      <span class="brand-text" style="font-size:1.35rem; color:#FFFFFF;">VIJAYRAJ</span>
+      <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems &amp; Jewellery</span>
+    </div>
+  </a>
+
+  <nav class="nav-links">
+    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+    <a href="{{ url_for('shop_catalog') }}" class="nav-link">Shop</a>
+
+    <!-- Cart Icon with Count Badge -->
+    <a href="{{ url_for('view_cart') }}" class="nav-cart-btn" aria-label="Shopping Cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+      </svg>
+      {% if cart_count > 0 %}
+        <span class="nav-cart-badge">{{ cart_count }}</span>
+      {% endif %}
+    </a>
+
+    {% if current_customer %}
+      <a href="{{ url_for('customer_profile') }}" class="btn btn-gold btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem;">My Profile</a>
+      <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-gold btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem;">My Orders</a>
+      <a href="{{ url_for('customer_logout') }}" class="nav-link" style="font-size:0.82rem; color:#CBD5E1;">Sign Out</a>
+    {% endif %}
+  </nav>
+</header>
+
+<!-- Header Banner -->
+<div style="background:var(--primary-navy); padding: 2rem 1.5rem; color:#FFFFFF; border-bottom:1px solid rgba(201,162,75,0.3);">
+  <div style="max-width: 1000px; margin: 0 auto; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+      <span class="overline" style="color:#C9A24B; letter-spacing:2px; font-size:0.75rem; text-transform:uppercase;">Authenticated Patron Profile</span>
+      <h1 style="font-family:var(--font-serif); font-size:2rem; font-weight:600; margin-top:0.25rem; margin-bottom:0.25rem;">
+        My Account &amp; Saved Profile
+      </h1>
+      <div style="font-size:0.88rem; color:#CBD5E1;">
+        Logged in as: <strong>{{ account.email if account else current_customer.email }}</strong> &bull; Client Code: <strong>{{ customer.customer_code if customer else 'VIP' }}</strong>
+      </div>
+    </div>
+    <div style="display:flex; gap:0.75rem;">
+      <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-gold btn-sm">View My Orders ({{ order_count }}) &rarr;</a>
+    </div>
+  </div>
+</div>
+
+<div class="shop-container" style="max-width: 1000px; margin: 2rem auto; padding: 0 1.5rem 3rem;">
+  
+  <div style="display:grid; grid-template-columns: 2fr 1fr; gap: 2rem; align-items:start;">
+    <!-- Profile Form -->
+    <div class="card" style="background:#FFFFFF; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.06); padding:2rem; border:1px solid var(--border-warm);">
+      <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:1.5rem; padding-bottom:1rem; border-bottom:1px solid var(--border-warm);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-gold);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <div>
+          <h2 style="font-family:var(--font-serif); font-size:1.35rem; margin:0; color:var(--primary-navy);">Delivery Particulars &amp; Contact</h2>
+          <p style="margin:0; font-size:0.82rem; color:var(--text-secondary);">These details are securely saved for your one-click checkout experience.</p>
+        </div>
+      </div>
+
+      <form action="{{ url_for('customer_profile') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.25rem;">
+          <div class="form-group">
+            <label class="form-label" for="prof_name" style="font-weight:600; font-size:0.85rem;">Full Name *</label>
+            <input type="text" id="prof_name" name="name" class="form-control"
+                   value="{{ customer.name if customer else '' }}" required placeholder="Enter your full name">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="prof_phone" style="font-weight:600; font-size:0.85rem;">Mobile Contact Number *</label>
+            <input type="tel" id="prof_phone" name="phone" class="form-control"
+                   value="{{ customer.phone if customer else '' }}" pattern="[0-9]{10}" maxlength="10" required placeholder="10-digit mobile number">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label class="form-label" for="prof_email" style="font-weight:600; font-size:0.85rem;">Registered Email (Account Login)</label>
+          <input type="email" id="prof_email" class="form-control"
+                 value="{{ account.email if account else current_customer.email }}" readonly style="background:#F8FAFC; color:#64748B; cursor:not-allowed;">
+          <span style="font-size:0.75rem; color:var(--text-muted);">Your email address is your permanent secure login identifier.</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom:1.25rem;">
+          <label class="form-label" for="prof_address" style="font-weight:600; font-size:0.85rem;">Default Shipping / Delivery Address *</label>
+          <textarea id="prof_address" name="address" class="form-control" rows="3" required placeholder="Apartment / Villa, Street, Landmark...">{{ customer.address if customer and customer.address != 'Counter Sale (Walk-in)' else '' }}</textarea>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:1rem; margin-bottom:1.75rem;">
+          <div class="form-group">
+            <label class="form-label" for="prof_city" style="font-weight:600; font-size:0.85rem;">City *</label>
+            <input type="text" id="prof_city" name="city" class="form-control"
+                   value="{{ customer.city if customer and customer.city else 'Pune' }}" required placeholder="City">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="prof_state" style="font-weight:600; font-size:0.85rem;">State *</label>
+            <input type="text" id="prof_state" name="state" class="form-control"
+                   value="{{ customer.state if customer and customer.state else 'Maharashtra' }}" required placeholder="State">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="prof_pincode" style="font-weight:600; font-size:0.85rem;">PIN Code *</label>
+            <input type="text" id="prof_pincode" name="pincode" class="form-control"
+                   value="{{ customer.pincode if customer and customer.pincode else '411001' }}" pattern="[0-9]{6}" maxlength="6" required placeholder="PIN Code">
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; pt:1rem; border-top:1px solid var(--border-warm); padding-top:1.25rem;">
+          <a href="{{ url_for('checkout_view') }}" class="btn btn-secondary btn-sm">&larr; Return to Checkout</a>
+          <button type="submit" class="btn btn-gold" style="padding:0.6rem 1.5rem; font-weight:600;">
+            Save Profile Particulars &rarr;
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Sidebar: Loyalty & Account Overview -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+      <div class="card" style="background:linear-gradient(135deg, #0d1b2a 0%, #1b263b 100%); color:#FFFFFF; border-radius:12px; padding:1.75rem; border:1px solid rgba(201,162,75,0.4);">
+        <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-gold);"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+          <span style="font-size:0.75rem; letter-spacing:2px; text-transform:uppercase; color:var(--accent-gold); font-weight:600;">Privilege Membership</span>
+        </div>
+        <div style="font-size:2rem; font-family:var(--font-serif); color:#FFFFFF; margin-bottom:0.25rem;">
+          {{ customer.loyalty_points if customer else 0 }} <span style="font-size:1rem; font-family:sans-serif; color:var(--accent-gold);">pts</span>
+        </div>
+        <div style="font-size:0.82rem; color:#CBD5E1; margin-bottom:1rem;">
+          Statutory loyalty points earned across authentic hallmark jewellery acquisitions.
+        </div>
+        <div style="padding-top:0.75rem; border-top:1px solid rgba(255,255,255,0.1); font-size:0.75rem; color:#94A3B8;">
+          Member Since: <strong>{{ customer.created_at.strftime('%d %b %Y') if customer and customer.created_at else '2024' }}</strong>
+        </div>
+      </div>
+
+      <div class="card" style="background:#FFFFFF; border-radius:12px; padding:1.5rem; border:1px solid var(--border-warm);">
+        <h3 style="font-family:var(--font-serif); font-size:1.1rem; color:var(--primary-navy); margin-top:0; margin-bottom:0.75rem;">Quick Concierge</h3>
+        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:0.65rem; font-size:0.85rem;">
+          <li><a href="{{ url_for('customer_orders') }}" style="color:var(--accent-gold); text-decoration:none; font-weight:500;">&bull; View Order History &amp; GST Invoices</a></li>
+          <li><a href="{{ url_for('shop_catalog') }}" style="color:var(--accent-gold); text-decoration:none; font-weight:500;">&bull; Explore New Fine Jewellery Pieces</a></li>
+          <li><a href="{{ url_for('home') }}#boutique" style="color:var(--accent-gold); text-decoration:none; font-weight:500;">&bull; Flagship Boutique in Koregaon Park</a></li>
+          <li style="padding-top:0.5rem; border-top:1px solid var(--border-warm);"><a href="{{ url_for('customer_logout') }}" style="color:#EF4444; text-decoration:none;">&bull; Sign Out from Account</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}

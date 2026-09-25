@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping Cart | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block full_page %}
+<!-- Storefront Header Navigation -->
+<header class="landing-nav storefront-header" id="landingNav">
+  <a href="{{ url_for('home') }}" class="brand-mark">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+      <path d="M6 3h12l4 6-10 12L2 9z"></path>
+      <path d="M11 3v18"></path>
+      <path d="M2 9h20"></path>
+    </svg>
+    <div>
+      <span class="brand-text" style="font-size:1.35rem; color:#FFFFFF;">VIJAYRAJ</span>
+      <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems & Jewellery</span>
+    </div>
+  </a>
+
+  <nav class="nav-links">
+    <a href="{{ url_for('home') }}" class="nav-link">Home</a>
+    <a href="{{ url_for('shop_catalog') }}" class="nav-link">Shop All</a>
+
+    <!-- Cart Icon with Count Badge -->
+    <a href="{{ url_for('view_cart') }}" class="nav-cart-btn" aria-label="Shopping Cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <path d="M16 10a4 4 0 0 1-8 0"></path>
+      </svg>
+      {% if cart_count > 0 %}
+        <span class="nav-cart-badge">{{ cart_count }}</span>
+      {% endif %}
+    </a>
+
+    <!-- Customer Account -->
+    {% if current_customer %}
+      <a href="{{ url_for('customer_profile') }}" class="btn btn-gold btn-sm" style="font-size:0.8rem; padding:0.35rem 0.75rem;">My Profile</a>
+      <a href="{{ url_for('customer_orders') }}" class="btn btn-outline-gold btn-sm">My Orders</a>
+      <a href="{{ url_for('customer_logout') }}" class="nav-link" style="font-size:0.82rem; color:#CBD5E1;">Sign Out</a>
+    {% else %}
+      <a href="{{ url_for('customer_login') }}" class="btn btn-outline-gold btn-sm">Sign In</a>
+    {% endif %}
+
+    {% if current_user %}
+      <a href="{{ url_for('dashboard') }}" class="btn btn-gold btn-sm" style="margin-left:0.5rem;">Staff Portal</a>
+    {% endif %}
+  </nav>
+</header>
+
+<!-- Breadcrumb Strip -->
+<div style="background:var(--bg-ivory); border-bottom:1px solid var(--border-warm); padding:1rem 2rem;">
+  <div style="max-width:1200px; margin:0 auto; font-size:0.85rem; color:var(--text-muted);">
+    <a href="{{ url_for('home') }}" style="color:var(--text-primary); text-decoration:none;">Home</a> &bull; 
+    <a href="{{ url_for('shop_catalog') }}" style="color:var(--text-primary); text-decoration:none;">Shop</a> &bull; 
+    <strong style="color:var(--primary-navy);">Shopping Cart</strong>
+  </div>
+</div>
+
+<!-- Cart Content Container -->
+<div style="max-width: 1200px; margin: 2.5rem auto; padding: 0 1.5rem;">
+  <h1 style="font-family:var(--font-serif); font-size:2rem; font-weight:600; color:var(--primary-navy); margin-bottom:1.5rem;">
+    Your Selected Pieces
+  </h1>
+
+  {% set active_items = cart_items or items %}
+  {% if active_items %}
+  <div class="cart-layout">
+    <!-- Items List Card -->
+    <div class="cart-items-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:1rem; border-bottom:1px solid var(--border-light); font-size:0.85rem; color:var(--text-muted);">
+        <span>{{ active_items|length }} Unique {% if active_items|length == 1 %}Piece{% else %}Pieces{% endif %} in Cart</span>
+        <a href="{{ url_for('shop_catalog') }}" style="color:var(--accent-gold); text-decoration:none; font-weight:600;">+ Add More Pieces</a>
+      </div>
+
+      {% for item in active_items %}
+      <div class="cart-item-row">
+        <div class="cart-item-thumb">
+          <img src="{{ item.image_url }}" alt="{{ item.product_name }}">
+        </div>
+
+        <div class="cart-item-details">
+          <a href="{{ url_for('product_detail_view', product_id=item.product_id) }}" class="cart-item-name">
+            {{ item.product_name }}
+          </a>
+          <div class="cart-item-meta">
+            <span>Code: <strong>{{ item.product_code }}</strong></span>
+            &bull; <span>Purity: <strong>{{ item.purity or '22K' }}</strong></span>
+          </div>
+          {% if item.stock_qty <= 5 and item.stock_qty > 0 %}
+            <div style="font-size:0.75rem; color:var(--status-warning); font-weight:600;">
+              Only {{ item.stock_qty }} left in vault
+            </div>
+          {% elif item.stock_qty <= 0 %}
+            <div style="font-size:0.75rem; color:var(--status-danger); font-weight:600;">
+              Out of stock! Please remove to proceed.
+            </div>
+          {% endif %}
+        </div>
+
+        <div class="cart-unit-price">
+          {{ item.unit_price|inr }}
+        </div>
+
+        <!-- Quantity Adjust Form -->
+        <div>
+          <form action="{{ url_for('cart_update') }}" method="POST" style="display:inline-flex; align-items:center;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="product_id" value="{{ item.product_id }}">
+            <div class="detail-qty-picker" style="height:36px;">
+              <button type="submit" name="quantity" value="{{ item.quantity - 1 }}" class="qty-btn" style="width:28px;" {% if item.quantity <= 1 %}disabled style="opacity:0.4; cursor:not-allowed;"{% endif %}>&minus;</button>
+              <span class="qty-input" style="line-height:36px; width:34px;">{{ item.quantity }}</span>
+              <button type="submit" name="quantity" value="{{ item.quantity + 1 }}" class="qty-btn" style="width:28px;" {% if item.quantity >= item.stock_qty %}disabled style="opacity:0.4; cursor:not-allowed;"{% endif %}>&plus;</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="cart-line-total">
+          {{ (item.unit_price * item.quantity)|inr }}
+        </div>
+
+        <!-- Remove Button Form -->
+        <div>
+          <form action="{{ url_for('cart_remove') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="product_id" value="{{ item.product_id }}">
+            <button type="submit" class="cart-remove-btn" title="Remove piece from cart" aria-label="Remove item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Order Summary Card -->
+    <div class="order-summary-card">
+      <h2 class="summary-title">Price Breakdown</h2>
+
+      <!-- Free Delivery Progress Pill -->
+      {% if subtotal < config.FREE_DELIVERY_THRESHOLD %}
+      <div class="free-shipping-progress">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-gold); flex-shrink:0;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+        <div>
+          Add <strong>{{ (config.FREE_DELIVERY_THRESHOLD - subtotal)|inr }}</strong> more for <strong>FREE Insured Delivery</strong>
+        </div>
+      </div>
+      {% else %}
+      <div class="free-shipping-progress" style="background:#F0FFF4; border-color:#9AE6B4; color:var(--status-success);">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--status-success); flex-shrink:0;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <div><strong>Qualified for FREE Insured Express Delivery</strong></div>
+      </div>
+      {% endif %}
+
+      <div class="summary-row">
+        <span>Cart Subtotal</span>
+        <span style="font-weight:600; color:var(--text-primary);">{{ subtotal|inr }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Applicable GST (3%)</span>
+        <span style="font-weight:600; color:var(--text-primary);">{{ gst_amount|inr }}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Insured Delivery Charge</span>
+        <span style="font-weight:600; color:var(--text-primary);">
+          {% if delivery_charge == 0 %}
+            <span style="color:var(--status-success);">FREE</span>
+          {% else %}
+            {{ delivery_charge|inr }}
+          {% endif %}
+        </span>
+      </div>
+
+      <div class="summary-row total-row">
+        <span>Total Payable</span>
+        <span style="color:var(--primary-navy);">{{ grand_total|inr }}</span>
+      </div>
+
+      {% set has_out_of_stock = false %}
+      {% for item in (cart_items or items) %}
+        {% if item.stock_qty <= 0 %}
+          {% set has_out_of_stock = true %}
+        {% endif %}
+      {% endfor %}
+
+      {% if has_out_of_stock %}
+        <div style="background:var(--status-danger-bg); border:1px solid var(--status-danger); color:var(--status-danger); padding:0.75rem; border-radius:var(--radius-sm); font-size:0.85rem; margin-bottom:1rem;">
+          One or more items in your cart are currently out of stock. Please remove them before proceeding.
+        </div>
+        <button type="button" class="btn btn-secondary btn-lg" style="width:100%; opacity:0.6; cursor:not-allowed;" disabled>
+          Proceed to Checkout
+        </button>
+      {% else %}
+        <a href="{{ url_for('checkout_view') }}" class="btn btn-gold btn-lg" style="width:100%; text-align:center; display:block; text-decoration:none;">
+          Proceed to Secure Checkout &rarr;
+        </a>
+      {% endif %}
+
+      <div style="margin-top:1.25rem; font-size:0.75rem; color:var(--text-muted); text-align:center; line-height:1.5;">
+        🔒 All shipments are 100% transit-insured with tamper-proof luxury packaging and discreet delivery.
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Empty Cart State -->
+  <div class="card" style="text-align:center; padding:4rem 2rem;">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--accent-gold); margin-bottom:1rem;">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>
+    <h2 style="font-family:var(--font-serif); font-size:1.6rem; color:var(--primary-navy); margin-bottom:0.5rem;">Your Cart is Empty</h2>
+    <p class="text-muted" style="max-width:400px; margin:0 auto 1.5rem auto;">
+      You have not added any fine jewellery pieces to your cart yet. Explore our bespoke collections to find your next heirloom.
+    </p>
+    <a href="{{ url_for('shop_catalog') }}" class="btn btn-gold btn-lg">Explore Catalogue</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="footer-content">
+    <div class="footer-brand">
+      <div class="brand-title">VIJAYRAJ GEMS & JEWELLERY</div>
+      <p>Haute joaillerie specializing exclusively in certified diamonds and rare gemstones, mounted in precious 18K gold, platinum, and sterling silver settings.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Customer Care</h4>
+      <ul>
+        <li><a href="{{ url_for('customer_orders') }}">Track Orders</a></li>
+        <li><a href="{{ url_for('shop_catalog') }}">All Pieces</a></li>
+        <li><a href="{{ url_for('home') }}#rates">Live Stone Spot Rates</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Flagship Boutique</h4>
+      <p style="font-size:0.85rem; line-height:1.6; color:rgba(255,255,255,0.85);">
+        <strong>VijayRaj Gems and jewellery</strong><br>
+        C1, N Main Rd, near Loftman Clothing Lane,<br>
+        Koregaon Park, Pune, Maharashtra 411001.<br>
+        <span style="color:#10B981; font-weight:600;">Mon - Sun: 9:00 AM – 10:30 PM</span><br>
+        Phone: <a href="tel:+919172387741" style="color:#C9A24B; text-decoration:none; font-weight:700;">+91 91723 87741</a><br>
+        <a href="https://maps.app.goo.gl/J2VRVorKfkCWj1Tu5" target="_blank" rel="noopener noreferrer" style="color:var(--accent-gold); text-decoration:underline; font-size:0.8rem;">
+          View on Google Maps &rarr;
+        </a>
+      </p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div>&copy; {{ current_year }} VijayRaj Gems and jewellery. All Rights Reserved. &bull; 4.8 ★ Google Verified</div>
+  </div>
+</footer>
+{% endblock %}

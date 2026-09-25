@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Create Customer Account | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block full_page %}
+<div class="login-split-page">
+  <!-- Left Side: Editorial Luxury Art Panel -->
+  <div class="login-art-panel">
+    <img src="{{ url_for('static', filename='images/hero-1.jpg') }}" alt="Royal Diamond & Gemstone Atelier">
+    <div class="art-overlay">
+      <div class="brand-mark">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+          <path d="M6 3h12l4 6-10 12L2 9z"></path>
+          <path d="M11 3v18"></path>
+          <path d="M2 9h20"></path>
+        </svg>
+        <div>
+          <span class="brand-text" style="font-size:1.5rem; color:#FFFFFF;">VIJAYRAJ</span>
+          <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems & Jewellery</span>
+        </div>
+      </div>
+
+      <div>
+        <span class="overline" style="color:#C9A24B;">Begin Your Legacy</span>
+        <h1 class="art-headline">Register for Exceptional Privileges</h1>
+        <p class="art-sub">Create your private boutique profile to enjoy insured express shipping across India, seamless order tracking, and statutory tax invoices.</p>
+      </div>
+
+      <div style="font-size:0.8rem; color:rgba(255,255,255,0.45);">
+        &copy; {{ current_year }} Vijayraj Gems and Jewellery. All Rights Reserved.
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Registration Form Panel -->
+  <div class="login-form-panel">
+    <div class="login-card-inner">
+      <div style="margin-bottom:1.75rem;">
+        <a href="{{ url_for('home') }}" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem; color:#6B7280; margin-bottom:1.25rem; text-decoration:none;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to Public Storefront
+        </a>
+        <h2 class="login-title">Create an Account</h2>
+        <p class="login-instruction">Please enter your personal particulars to register.</p>
+      </div>
+
+      <form action="{{ url_for('customer_register') }}{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <div class="form-group">
+          <label class="form-label" for="name">Full Name *</label>
+          <input type="text" id="name" name="name" class="form-control" placeholder="e.g. Radhika Merchant" required autofocus value="{{ request.form.get('name', '') }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address *</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="e.g. radhika@example.com" required value="{{ request.form.get('email', '') }}">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="phone">Mobile Number (10 digits) *</label>
+          <input type="tel" id="phone" name="phone" class="form-control" placeholder="e.g. 9876543210" pattern="[0-9]{10}" maxlength="10" required value="{{ request.form.get('phone', '') }}">
+          <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">Existing boutique clients with matching phone will be automatically linked.</div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password (min. 8 characters) *</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="••••••••••••" minlength="8" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.85rem; margin-top:0.5rem;">
+          Register Account
+        </button>
+      </form>
+
+      <div style="margin-top:1.5rem; text-align:center; font-size:0.9rem; color:#6B7280;">
+        Already registered? <a href="{{ url_for('customer_login') }}{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" style="color:var(--accent-gold); font-weight:600; text-decoration:none;">Sign In Here &rarr;</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}{% if is_edit %}Edit {{ category.name }}{% else %}Add New Category{% endif %} | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}{% if is_edit %}Edit Category: {{ category.name }}{% else %}Register New Category{% endif %}{% endblock %}
+
+{% block content %}
+<div style="max-width: 640px; margin: 0 auto;">
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">{% if is_edit %}Edit Category Particulars{% else %}Category Specifications{% endif %}</h3>
+        <p class="text-muted" style="font-size:0.85rem;">This category organizes products in the online storefront and navigation filters.</p>
+      </div>
+      <a href="{{ url_for('categories_list') }}" class="btn btn-secondary btn-sm">&larr; Back to Categories</a>
+    </div>
+
+    <form method="POST" action="{% if is_edit %}{{ url_for('category_edit', id=category.id) }}{% else %}{{ url_for('category_add') }}{% endif %}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+      <div class="form-group">
+        <label class="form-label" for="name">Category Name *</label>
+        <input type="text" id="name" name="name" class="form-control"
+               value="{{ category.name if category else '' }}" placeholder="e.g. Diamond Rings" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="slug">URL Slug (leave blank to auto-generate)</label>
+        <input type="text" id="slug" name="slug" class="form-control"
+               value="{{ category.slug if category else '' }}" placeholder="e.g. diamond-rings">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Short Description</label>
+        <textarea id="description" name="description" class="form-control" rows="3"
+                  placeholder="Appears in category headers and SEO meta...">{{ category.description if category else '' }}</textarea>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="image_path">Tile Image Fallback</label>
+        <select id="image_path" name="image_path" class="form-control">
+          <option value="products/diamond-solitaire.jpg" {% if category and category.image_path == 'products/diamond-solitaire.jpg' %}selected{% endif %}>Diamond Solitaire Rings (diamond-solitaire.jpg)</option>
+          <option value="products/emerald-ring.jpg" {% if category and category.image_path == 'products/emerald-ring.jpg' %}selected{% endif %}>Precious Gemstone Rings (emerald-ring.jpg)</option>
+          <option value="products/diamond-choker.jpg" {% if category and category.image_path == 'products/diamond-choker.jpg' %}selected{% endif %}>Diamond Necklaces (diamond-choker.jpg)</option>
+          <option value="products/ruby-necklace.jpg" {% if category and category.image_path == 'products/ruby-necklace.jpg' %}selected{% endif %}>Gemstone Statement Necklaces (ruby-necklace.jpg)</option>
+          <option value="products/diamond-earrings-1.jpg" {% if category and category.image_path == 'products/diamond-earrings-1.jpg' %}selected{% endif %}>Diamond & Stone Earrings (diamond-earrings-1.jpg)</option>
+          <option value="products/diamond-bracelet-1.jpg" {% if category and category.image_path == 'products/diamond-bracelet-1.jpg' %}selected{% endif %}>Diamond & Stone Bracelets (diamond-bracelet-1.jpg)</option>
+          <option value="products/diamond-pendant-1.jpg" {% if category and category.image_path == 'products/diamond-pendant-1.jpg' %}selected{% endif %}>Diamond & Gemstone Pendants (diamond-pendant-1.jpg)</option>
+          <option value="products/kundan-choker.jpg" {% if category and category.image_path == 'products/kundan-choker.jpg' %}selected{% endif %}>High Jewellery Suites (kundan-choker.jpg)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+          <input type="checkbox" name="is_active" value="1" {% if not category or category.is_active %}checked{% endif %}>
+          <span>Category is Active (Visible on Storefront)</span>
+        </label>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:1rem; margin-top:2rem;">
+        <a href="{{ url_for('categories_list') }}" class="btn btn-secondary">Cancel</a>
+        <button type="submit" class="btn btn-gold">
+          {% if is_edit %}Save Changes{% else %}Create Category{% endif %}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

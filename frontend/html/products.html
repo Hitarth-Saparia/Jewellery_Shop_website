@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Product Inventory | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}Jewellery Catalogue & Stock{% endblock %}
+
+{% block topbar_actions %}
+{% if current_user.role in ('admin', 'manager') %}
+<a href="{{ url_for('product_add') }}" class="btn btn-gold btn-sm">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+  Add Jewellery Piece
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- Category Pill Filter Tabs -->
+<div class="category-pills">
+  <a href="{{ url_for('products_list', q=q, sort=sort, stock_status=stock_status) }}" class="cat-pill {% if not current_category %}active{% endif %}">
+    All Collections ({{ total_count }})
+  </a>
+  {% for cat in categories %}
+  <a href="{{ url_for('products_list', category=cat, q=q, sort=sort, stock_status=stock_status) }}" class="cat-pill {% if current_category == cat %}active{% endif %}">
+    {{ cat }}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Search & Filter Controls -->
+<form method="GET" action="{{ url_for('products_list') }}" class="filter-bar">
+  {% if current_category %}
+  <input type="hidden" name="category" value="{{ current_category }}">
+  {% endif %}
+
+  <div class="search-input-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Search by product code, name, design..." />
+  </div>
+
+  <select name="stock_status" class="form-control" style="width:160px;" onchange="this.form.submit()">
+    <option value="" {% if not stock_status %}selected{% endif %}>All Stock Levels</option>
+    <option value="low" {% if stock_status == 'low' %}selected{% endif %}>Low Stock Only</option>
+    <option value="in" {% if stock_status == 'in' %}selected{% endif %}>In Stock Only</option>
+    <option value="out" {% if stock_status == 'out' %}selected{% endif %}>Out of Stock</option>
+  </select>
+
+  <select name="sort" class="form-control" style="width:170px;" onchange="this.form.submit()">
+    <option value="code_asc" {% if sort == 'code_asc' %}selected{% endif %}>Code: Ascending</option>
+    <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+    <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+    <option value="stock_asc" {% if sort == 'stock_asc' %}selected{% endif %}>Stock: Lowest First</option>
+    <option value="name_asc" {% if sort == 'name_asc' %}selected{% endif %}>Name: A to Z</option>
+  </select>
+
+  <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+  {% if q or current_category or stock_status or (sort != 'code_asc') %}
+  <a href="{{ url_for('products_list') }}" class="btn btn-secondary btn-sm">Clear</a>
+  {% endif %}
+</form>
+
+<!-- Products Table -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:60px;">Item</th>
+          <th>Code</th>
+          <th>Piece Name</th>
+          <th>Category</th>
+          <th>Purity</th>
+          <th class="text-right">Weight</th>
+          <th class="text-right">Price</th>
+          <th class="text-center">Stock</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr>
+          <td>
+            <img class="item-thumb" src="{{ category_images.get(p.category, category_images.Default) }}" alt="{{ p.name }}" loading="lazy">
+          </td>
+          <td><strong style="color:#0F1B2D;">{{ p.product_code }}</strong></td>
+          <td>
+            <div style="font-weight:600;">{{ p.name }}</div>
+            {% if p.design_code %}
+              <span class="text-muted" style="font-size:0.75rem;">Design: {{ p.design_code }}</span>
+            {% endif %}
+          </td>
+          <td><span class="badge badge-gold">{{ p.category }}</span></td>
+          <td>{{ p.purity or '—' }}</td>
+          <td class="text-right">{{ p.weight_grams }}g</td>
+          <td class="text-right"><strong style="color:#0F1B2D;">{{ p.price|inr }}</strong></td>
+          <td class="text-center">
+            {% if p.stock_qty <= 0 %}
+              <span class="badge badge-danger">Out of Stock</span>
+            {% elif p.stock_qty <= p.reorder_level %}
+              <span class="badge badge-danger">{{ p.stock_qty }} left (Low)</span>
+            {% else %}
+              <span class="badge badge-success">{{ p.stock_qty }} in stock</span>
+            {% endif %}
+          </td>
+          <td class="text-right">
+            <div class="action-btns" style="justify-content:flex-end;">
+              {% if p.stock_qty > 0 %}
+                <a href="{{ url_for('product_detail_view', product_id=p.id) }}" class="btn-icon" title="View in Shop">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                </a>
+              {% endif %}
+
+              {% if current_user.role in ('admin', 'manager') %}
+                <a href="{{ url_for('product_edit', id=p.id) }}" class="btn-icon" title="Edit Piece">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                </a>
+              {% endif %}
+
+              {% if current_user.role == 'admin' %}
+                <form action="{{ url_for('product_delete', id=p.id) }}" method="POST" style="display:inline;" onsubmit="return confirmAction('Delete this item from catalogue?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+                  <button type="submit" class="btn-icon btn-icon-danger" title="Delete Piece">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                  </button>
+                </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="text-center" style="padding:3rem;">
+            <div style="font-size:1.1rem; color:#1E2430; margin-bottom:0.5rem;">No jewellery pieces found</div>
+            <p class="text-muted" style="font-size:0.85rem;">Try modifying your search or collection filter.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Server-side Pagination -->
+{% if total_pages > 1 %}
+<div class="pagination">
+  <div>Showing page {{ page }} of {{ total_pages }} ({{ total_count }} total pieces)</div>
+  <div class="page-controls">
+    <a href="{{ url_for('products_list', page=page-1, q=q, category=current_category, stock_status=stock_status, sort=sort) }}" class="page-btn {% if page <= 1 %}disabled{% endif %}">&laquo; Prev</a>
+    {% for p_num in range(1, total_pages + 1) %}
+      {% if p_num == page or (p_num >= page - 2 and p_num <= page + 2) or p_num == 1 or p_num == total_pages %}
+        <a href="{{ url_for('products_list', page=p_num, q=q, category=current_category, stock_status=stock_status, sort=sort) }}" class="page-btn {% if p_num == page %}active{% endif %}">{{ p_num }}</a>
+      {% elif p_num == page - 3 or p_num == page + 3 %}
+        <span style="padding:0 4px; color:#9CA3AF;">...</span>
+      {% endif %}
+    {% endfor %}
+    <a href="{{ url_for('products_list', page=page+1, q=q, category=current_category, stock_status=stock_status, sort=sort) }}" class="page-btn {% if page >= total_pages %}disabled{% endif %}">Next &raquo;</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

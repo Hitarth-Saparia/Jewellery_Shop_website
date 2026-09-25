@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Access Restricted (403) | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}Security Notice{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 3rem auto; text-align: center;">
+  <div class="card" style="padding: 3.5rem 2rem;">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--status-danger-bg); display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; color:var(--status-danger);">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+    </div>
+
+    <span class="overline" style="color:var(--status-danger);">HTTP Error 403 &bull; Forbidden</span>
+    <h2 style="font-size:2rem; margin:0.5rem 0 1rem; color:var(--primary-navy);">Privilege Access Restricted</h2>
+    <p class="text-muted" style="margin-bottom:2rem; line-height:1.7;">
+      Your account role (<strong>{{ current_user.role|upper if current_user else 'UNAUTHENTICATED' }}</strong>) does not have authorization to view or execute actions on this resource.
+    </p>
+
+    <div style="display:flex; justify-content:center; gap:1rem;">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+      <a href="{{ url_for('home') }}" class="btn btn-secondary">Public Storefront</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

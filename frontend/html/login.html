@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Staff Login | Vijayraj Gems & Jewellery{% endblock %}
+
+{% block full_page %}
+<div class="login-split-page">
+  <!-- Left Side: Editorial Luxury Art Panel -->
+  <div class="login-art-panel">
+    <img src="{{ url_for('static', filename='images/login-bg.jpg') }}" alt="Vijayraj Fine Jewellery Display">
+    <div class="art-overlay">
+      <div class="brand-mark">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:#C9A24B;">
+          <path d="M6 3h12l4 6-10 12L2 9z"></path>
+          <path d="M11 3v18"></path>
+          <path d="M2 9h20"></path>
+        </svg>
+        <div>
+          <span class="brand-text" style="font-size:1.5rem; color:#FFFFFF;">VIJAYRAJ</span>
+          <span class="brand-sub" style="color:#C9A24B; letter-spacing:3px;">Gems & Jewellery</span>
+        </div>
+      </div>
+
+      <div>
+        <span class="overline" style="color:#C9A24B;">Staff Portal</span>
+        <h1 class="art-headline">Custodians of Purity and Royal Grandeur</h1>
+        <p class="art-sub">Authorized portal for inventory operations, Point-of-Sale billing, certified valuations, and client management.</p>
+      </div>
+
+      <div style="font-size:0.8rem; color:rgba(255,255,255,0.45);">
+        &copy; {{ current_year }} Vijayraj Gems and Jewellery. Enterprise POS System.
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Form Panel -->
+  <div class="login-form-panel">
+    <div class="login-card-inner">
+      <div style="margin-bottom:2rem;">
+        <a href="{{ url_for('home') }}" style="display:inline-flex; align-items:center; gap:0.4rem; font-size:0.85rem; color:#6B7280; margin-bottom:1.5rem;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to Public Storefront
+        </a>
+        <h2 class="login-title">Sign In to Workspace</h2>
+        <p class="login-instruction">Enter your credentials to manage shop operations.</p>
+      </div>
+
+      <form action="{{ url_for('login') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" name="username" class="form-control" placeholder="e.g. admin or rohit.mgr" required autofocus>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" name="password" class="form-control" placeholder="••••••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width:100%; padding:0.85rem; margin-top:0.5rem;">
+          Authenticate & Access System
+        </button>
+      </form>
+
+      <div style="margin-top:1.25rem; text-align:center; font-size:0.85rem; color:#6B7280;">
+        Are you a boutique customer? <a href="{{ url_for('customer_login') }}" style="color:var(--accent-gold); font-weight:600; text-decoration:none;">Customer Sign In &rarr;</a>
+      </div>
+
+      <!-- Demo Accounts Helper Pills -->
+      <div class="demo-accounts-pill">
+        <div style="font-weight:600; color:#1E2430; font-size:0.78rem; text-transform:uppercase; letter-spacing:0.5px;">Quick Demo Accounts:</div>
+        <div class="demo-pills">
+          <button type="button" class="pill-btn" onclick="fillDemo('admin', 'Admin@123')">
+            <strong>Admin:</strong> admin
+          </button>
+          <button type="button" class="pill-btn" onclick="fillDemo('rohit.mgr', 'Rohit@456')">
+            <strong>Manager:</strong> rohit.mgr
+          </button>
+          <button type="button" class="pill-btn" onclick="fillDemo('amit.staff', 'Amit@789')">
+            <strong>Staff:</strong> amit.staff
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function fillDemo(username, password) {
+    document.getElementById('username').value = username;
+    document.getElementById('password').value = password;
+  }
+</script>
+{% endblock %}

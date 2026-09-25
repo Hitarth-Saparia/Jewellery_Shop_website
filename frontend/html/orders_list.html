@@ -1,0 +1,205 @@
+{% extends "base.html" %}
+
+{% block title %}Online Store Orders | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}E-Commerce Orders Management{% endblock %}
+
+{% block content %}
+<!-- KPI Summary Counters -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div>
+      <div class="kpi-label">Total Store Orders</div>
+      <div class="kpi-val">{{ kpis.total or 0 }}</div>
+      <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">All-time online orders</div>
+    </div>
+    <div class="kpi-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path></svg>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: var(--status-warning);">
+    <div>
+      <div class="kpi-label">Pending Processing</div>
+      <div class="kpi-val" style="color:var(--status-warning);">{{ kpis.pending or 0 }}</div>
+      <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">Awaiting confirmation</div>
+    </div>
+    <div class="kpi-icon" style="background:var(--status-warning-bg);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="stroke:var(--status-warning);"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: var(--accent-gold);">
+    <div>
+      <div class="kpi-label">Confirmed / Packaging</div>
+      <div class="kpi-val" style="color:var(--accent-gold);">{{ kpis.confirmed or 0 }}</div>
+      <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">Paid and in vault prep</div>
+    </div>
+    <div class="kpi-icon" style="background:var(--accent-gold-light);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="stroke:var(--accent-gold);"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: var(--status-info);">
+    <div>
+      <div class="kpi-label">In Transit / Shipped</div>
+      <div class="kpi-val" style="color:var(--status-info);">{{ kpis.shipped or 0 }}</div>
+      <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">Insured courier dispatch</div>
+    </div>
+    <div class="kpi-icon" style="background:var(--status-info-bg);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="stroke:var(--status-info);"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>
+    </div>
+  </div>
+
+  <div class="kpi-card" style="border-left-color: var(--status-success);">
+    <div>
+      <div class="kpi-label">Successfully Delivered</div>
+      <div class="kpi-val" style="color:var(--status-success);">{{ kpis.delivered or 0 }}</div>
+      <div class="text-muted" style="font-size:0.75rem; margin-top:2px;">Completed consignments</div>
+    </div>
+    <div class="kpi-icon" style="background:var(--status-success-bg);">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="stroke:var(--status-success);"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+  </div>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="card" style="margin-bottom:1.5rem; padding:1.25rem 1.5rem;">
+  <form action="{{ url_for('manager_orders') }}" method="GET" style="display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end;">
+    <div style="flex:2; min-width:200px;">
+      <label class="form-label" for="q">Search Orders</label>
+      <input type="text" id="q" name="q" value="{{ filters.q or '' }}" placeholder="Search by Order #, Customer, Phone, or Invoice #" class="form-control">
+    </div>
+
+    <div style="flex:1; min-width:140px;">
+      <label class="form-label" for="status">Order Status</label>
+      <select id="status" name="status" class="form-control">
+        <option value="">All Statuses</option>
+        {% for s in ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'] %}
+          <option value="{{ s }}" {% if filters.status == s %}selected{% endif %}>{{ s }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="flex:1; min-width:140px;">
+      <label class="form-label" for="payment_status">Payment</label>
+      <select id="payment_status" name="payment_status" class="form-control">
+        <option value="">All Payments</option>
+        {% for ps in ['Pending', 'Paid', 'Failed', 'Refunded'] %}
+          <option value="{{ ps }}" {% if filters.payment_status == ps %}selected{% endif %}>{{ ps }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="display:flex; gap:0.5rem;">
+      <button type="submit" class="btn btn-primary">Filter</button>
+      <a href="{{ url_for('manager_orders') }}" class="btn btn-secondary">Reset</a>
+    </div>
+  </form>
+</div>
+
+<!-- Orders Table -->
+<div class="card" style="padding:0; overflow:hidden;">
+  <div style="padding:1.25rem 1.5rem; border-bottom:1px solid var(--border-light); display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <h3 class="card-title" style="margin-bottom:2px;">Online Orders Ledger</h3>
+      <div class="text-muted" style="font-size:0.8rem;">Showing {{ orders|length }} orders matching filter criteria</div>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Order No</th>
+          <th>Placed At</th>
+          <th>Customer Particulars</th>
+          <th>Items Summary</th>
+          <th class="text-right">Grand Total</th>
+          <th class="text-center">Payment Status</th>
+          <th class="text-center">Order Status</th>
+          <th class="text-right">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if orders %}
+          {% for o in orders %}
+          <tr>
+            <td>
+              <a href="{{ url_for('manager_order_detail', id=o.id) }}" style="font-weight:700; color:var(--primary-navy); text-decoration:none;">
+                {{ o.order_no }}
+              </a>
+              {% if o.invoice_no %}
+                <div style="font-size:0.75rem; color:var(--accent-gold); font-weight:600;">Bill: {{ o.invoice_no }}</div>
+              {% endif %}
+            </td>
+
+            <td style="font-size:0.85rem; color:var(--text-muted); white-space:nowrap;">
+              {{ o.created_at.strftime('%d %b %Y, %H:%M') }}
+            </td>
+
+            <td>
+              <div style="font-weight:600; color:var(--primary-navy);">{{ o.ship_name }}</div>
+              <div class="text-muted" style="font-size:0.75rem;">Phone: {{ o.ship_phone }} &bull; {{ o.ship_city }}</div>
+            </td>
+
+            <td style="max-width:260px; font-size:0.85rem;">
+              <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ o.items_summary }}</div>
+              <div class="text-muted" style="font-size:0.75rem;">{{ o.total_items }} {% if o.total_items == 1 %}piece{% else %}pieces{% endif %}</div>
+            </td>
+
+            <td class="text-right" style="font-weight:700; color:var(--primary-navy); white-space:nowrap;">
+              {{ o.grand_total|inr }}
+            </td>
+
+            <td class="text-center">
+              {% if o.payment_status == 'Paid' %}
+                <span class="badge badge-success">Paid</span>
+              {% elif o.payment_status == 'Failed' %}
+                <span class="badge badge-danger">Failed</span>
+              {% elif o.payment_status == 'Refunded' %}
+                <span class="badge badge-info">Refunded</span>
+              {% else %}
+                <span class="badge badge-warning">Pending</span>
+              {% endif %}
+            </td>
+
+            <td class="text-center">
+              {% if o.order_status == 'Delivered' %}
+                <span class="badge badge-success">Delivered</span>
+              {% elif o.order_status == 'Shipped' %}
+                <span class="badge badge-info">Shipped</span>
+              {% elif o.order_status == 'Confirmed' %}
+                <span class="badge badge-gold">Confirmed</span>
+              {% elif o.order_status == 'Cancelled' %}
+                <span class="badge badge-danger">Cancelled</span>
+              {% else %}
+                <span class="badge badge-warning">Pending</span>
+              {% endif %}
+            </td>
+
+            <td class="text-right" style="white-space:nowrap;">
+              <div style="display:inline-flex; gap:0.4rem;">
+                <a href="{{ url_for('manager_order_detail', id=o.id) }}" class="btn btn-secondary btn-sm" title="View Order & Update Status">
+                  Inspect
+                </a>
+                {% if o.payment_status == 'Paid' and o.invoice_no %}
+                  <a href="{{ url_for('manager_order_invoice_pdf', id=o.id) }}" class="btn btn-gold btn-sm" title="Download PDF Tax Invoice">
+                    PDF
+                  </a>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        {% else %}
+          <tr>
+            <td colspan="8" style="text-align:center; padding:3rem; color:var(--text-muted);">
+              No online orders found matching current filters.
+            </td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found (404) | Vijayraj Gems & Jewellery{% endblock %}
+{% block page_title %}Page Not Found{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 3rem auto; text-align: center;">
+  <div class="card" style="padding: 3.5rem 2rem;">
+    <div style="width:64px; height:64px; border-radius:50%; background:var(--accent-gold-light); display:flex; align-items:center; justify-content:center; margin:0 auto 1.5rem; color:var(--accent-gold);">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    </div>
+
+    <span class="overline">HTTP Error 404 &bull; Not Found</span>
+    <h2 style="font-size:2rem; margin:0.5rem 0 1rem; color:var(--primary-navy);">Requested Piece or Page Unavailable</h2>
+    <p class="text-muted" style="margin-bottom:2rem; line-height:1.7;">
+      {{ message or 'The jewellery record or page you requested could not be located in our system. It may have been archived or removed.' }}
+    </p>
+
+    <div style="display:flex; justify-content:center; gap:1rem;">
+      <a href="{{ url_for('dashboard') }}" class="btn btn-primary">Return to Dashboard</a>
+      <a href="{{ url_for('home') }}" class="btn btn-secondary">Public Storefront</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
