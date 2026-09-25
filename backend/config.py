@@ -26,12 +26,16 @@ class Config:
     HOST = os.getenv('FLASK_HOST', '0.0.0.0')
     PORT = int(os.getenv('FLASK_PORT', 5001))
 
-    # MySQL Database Connection (Existing read-only database)
+    # Detect cloud deployment (Render sets RENDER=true or PORT != 5001)
+    IS_CLOUD = os.getenv('RENDER') == 'true' or (os.getenv('PORT') is not None and os.getenv('PORT') != '5001')
+
+    # MySQL Database Connection (Configurable via environment variables)
     DB_HOST = os.getenv('DB_HOST', 'localhost')
     DB_PORT = int(os.getenv('DB_PORT', 3306))
     DB_USER = os.getenv('DB_USER', 'root')
     DB_PASSWORD = os.getenv('DB_PASSWORD', '')
     DB_NAME = os.getenv('DB_NAME', 'vijayraj_jewellery')
+    DB_SSL = os.getenv('DB_SSL', 'false')
 
     # Path to mysqldump binary for database backup
     MYSQL_DUMP_PATH = os.getenv('MYSQL_DUMP_PATH') or (

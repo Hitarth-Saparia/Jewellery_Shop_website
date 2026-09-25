@@ -11,12 +11,14 @@ services:
       - key: FLASK_DEBUG
         value: "False"
       - key: DB_HOST
-        sync: false
+        value: "mysql-2a1eba49-heetdarshitsaparia-8ef1.f.aivencloud.com"
       - key: DB_PORT
-        value: "3306"
+        value: "26121"
       - key: DB_USER
-        sync: false
+        value: "avnadmin"
       - key: DB_PASSWORD
         sync: false
       - key: DB_NAME
-        value: "vijayraj_jewellery"
+        value: "defaultdb"
+      - key: DB_SSL
+        value: "true"

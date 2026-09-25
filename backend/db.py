@@ -6,7 +6,10 @@ Never string-concatenates SQL.
 from contextlib import contextmanager
 import pymysql
 from pymysql.cursors import DictCursor
-from config import Config
+try:
+    from config import Config
+except ImportError:
+    from backend.config import Config
 
 
 def get_connection():
