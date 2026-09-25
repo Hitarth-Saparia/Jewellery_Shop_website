@@ -32,12 +32,37 @@ def get_connection():
     return pymysql.connect(**kwargs)
 
 
+def get_db():
+    """Get or create a request-scoped database connection."""
+    try:
+        from flask import g, has_request_context
+        if has_request_context():
+            if 'db_conn' not in g or g.db_conn is None:
+                g.db_conn = get_connection()
+            else:
+                try:
+                    g.db_conn.ping(reconnect=True)
+                except Exception:
+                    g.db_conn = get_connection()
+            return g.db_conn
+    except (ImportError, Exception):
+        pass
+    return get_connection()
+
+
 def query(sql, params=(), fetchone=False):
     """
-    Execute a parameterized SELECT query.
+    Execute a parameterized SELECT query using reused connection.
     Always uses parameterized queries to prevent SQL injection.
     """
-    conn = get_connection()
+    use_scoped = False
+    try:
+        from flask import has_request_context
+        use_scoped = has_request_context()
+    except Exception:
+        use_scoped = False
+
+    conn = get_db() if use_scoped else get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(sql, params)
@@ -45,7 +70,8 @@ def query(sql, params=(), fetchone=False):
                 return cur.fetchone()
             return cur.fetchall()
     finally:
-        conn.close()
+        if not use_scoped:
+            conn.close()
 
 
 def execute(sql, params=(), commit=True):
@@ -53,7 +79,14 @@ def execute(sql, params=(), commit=True):
     Execute a parameterized INSERT, UPDATE, or DELETE statement.
     Returns (lastrowid, rowcount).
     """
-    conn = get_connection()
+    use_scoped = False
+    try:
+        from flask import has_request_context
+        use_scoped = has_request_context()
+    except Exception:
+        use_scoped = False
+
+    conn = get_db() if use_scoped else get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(sql, params)
@@ -66,7 +99,8 @@ def execute(sql, params=(), commit=True):
         conn.rollback()
         raise
     finally:
-        conn.close()
+        if not use_scoped:
+            conn.close()
 
 
 def callproc(proc_name, params=()):

@@ -223,6 +223,26 @@ def csrf_protect():
             return redirect(request.referrer or url_for('home'))
 
 
+@app.teardown_appcontext
+def close_db_connection(exception=None):
+    """Safely return or close request-scoped MySQL connection."""
+    from flask import g
+    conn = g.pop('db_conn', None)
+    if conn is not None:
+        try:
+            conn.close()
+        except Exception:
+            pass
+
+
+@app.after_request
+def optimize_static_and_headers(response):
+    """Enable client-side caching for images and CSS to accelerate repeat loads."""
+    if request.path.startswith('/static/'):
+        response.headers['Cache-Control'] = 'public, max-age=86400, immutable'
+    return response
+
+
 # ── Authentication & Access Control Decorators ───────────────────────────────
 
 def login_required(f):
