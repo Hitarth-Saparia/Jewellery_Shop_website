@@ -22,8 +22,10 @@ def get_connection():
         'autocommit': False
     }
     import os
-    if os.path.exists('/tmp/mysql.sock'):
+    if Config.DB_HOST in ('localhost', '127.0.0.1') and os.path.exists('/tmp/mysql.sock'):
         kwargs['unix_socket'] = '/tmp/mysql.sock'
+    if os.getenv('DB_SSL', '').lower() in ('true', '1', 'required'):
+        kwargs['ssl'] = {'ssl_mode': 'REQUIRED'}
     return pymysql.connect(**kwargs)
 
 
